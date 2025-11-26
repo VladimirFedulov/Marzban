@@ -49,5 +49,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/VladimirFedulov/marzban:latest
-            ghcr.io/VladimirFedulov/marzban:${{github.ref_name}}
+            ghcr.io/vladimirfedulov/marzban:latest
+            ghcr.io/vladimirfedulov/marzban:${{github.ref_name}}
