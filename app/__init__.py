@@ -10,14 +10,13 @@ from fastapi.routing import APIRoute
 
 from config import ALLOWED_ORIGINS, DOCS, XRAY_SUBSCRIPTION_PATH
 
-__version__ = "0.8.4"
+__version__ = "0.8.4.5"
 
 app = FastAPI(
     title="MarzbanAPI",
     description="Unified GUI Censorship Resistant Solution Powered by Xray",
     version=__version__,
-    docs_url="/docs" if DOCS else None,
-    redoc_url="/redoc" if DOCS else None,
+    openapi_url="/openapi.json" if DOCS else None,
 )
 
 scheduler = BackgroundScheduler(
