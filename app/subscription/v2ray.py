@@ -529,6 +529,7 @@ class V2rayJsonConfig(str):
     def __init__(self):
         self.config = []
         self.template = render_template(V2RAY_SUBSCRIPTION_TEMPLATE)
+        self.template_ru = render_template(V2RAY_SUBSCRIPTION_TEMPLATE_RU)
         self.mux_template = render_template(MUX_TEMPLATE)
         user_agent_data = json.loads(render_template(USER_AGENT_TEMPLATE))
 
@@ -553,8 +554,11 @@ class V2rayJsonConfig(str):
 
         del user_agent_data, grpc_user_agent_data
 
-    def add_config(self, remarks, outbounds):
-        json_template = json.loads(self.template)
+        def add_config(self, remarks, outbounds):
+        if "🇷🇺" in remarks.upper():
+            json_template = json.loads(self.template_ru)
+        else:
+            json_template = json.loads(self.template)
         json_template["remarks"] = remarks
         json_template["outbounds"] = outbounds + json_template["outbounds"]
         self.config.append(json_template)

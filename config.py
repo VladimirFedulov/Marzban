@@ -63,6 +63,7 @@ SINGBOX_SETTINGS_TEMPLATE = config("SINGBOX_SETTINGS_TEMPLATE", default="singbox
 MUX_TEMPLATE = config("MUX_TEMPLATE", default="mux/default.json")
 
 V2RAY_SUBSCRIPTION_TEMPLATE = config("V2RAY_SUBSCRIPTION_TEMPLATE", default="v2ray/default.json")
+V2RAY_SUBSCRIPTION_TEMPLATE_RU = config("V2RAY_SUBSCRIPTION_TEMPLATE_RU", default="v2ray/default_ru.json")
 V2RAY_SETTINGS_TEMPLATE = config("V2RAY_SETTINGS_TEMPLATE", default="v2ray/settings.json")
 
 USER_AGENT_TEMPLATE = config("USER_AGENT_TEMPLATE", default="user_agent/default.json")
