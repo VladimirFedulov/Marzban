@@ -555,14 +555,14 @@ class V2rayJsonConfig(str):
 
         del user_agent_data, grpc_user_agent_data
 
-        def add_config(self, remarks, outbounds):
-            if "🇷🇺" in remarks.upper():
-                json_template = json.loads(self.template_ru)
-            else:
-                json_template = json.loads(self.template)
-            json_template["remarks"] = remarks
-            json_template["outbounds"] = outbounds + json_template["outbounds"]
-            self.config.append(json_template)
+    def add_config(self, remarks, outbounds):
+        if "🇷🇺" in remarks.upper():
+            json_template = json.loads(self.template_ru)
+        else:
+            json_template = json.loads(self.template)
+        json_template["remarks"] = remarks
+        json_template["outbounds"] = outbounds + json_template["outbounds"]
+        self.config.append(json_template)
 
     def render(self, reverse=False):
         if reverse:
