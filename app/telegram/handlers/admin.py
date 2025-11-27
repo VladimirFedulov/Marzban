@@ -52,7 +52,7 @@ def get_system_info():
         onhold_users = crud.get_users_count(db, UserStatus.on_hold)
     return """\
 🖥 *CPU Usage*: `{cpu_percent}%`    
-🎛 *CPU Core(s)*: `{cpu_cores}`
+🎛 *CPU Core*: `{cpu_cores}`
 ➖➖➖➖➖➖➖
 📈 *In Use Memory*: `{used_memory}`
 📉 *Free Memory*: `{free_memory}`
