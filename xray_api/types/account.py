@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod 
+from abc import ABC, abstractmethod
 from enum import Enum
 from uuid import UUID
 
@@ -9,6 +9,8 @@ from ..proto.proxy.shadowsocks.config_pb2 import \
     Account as ShadowsocksAccountPb2
 from ..proto.proxy.shadowsocks.config_pb2 import \
     CipherType as ShadowsocksCiphers
+from ..proto.proxy.shadowsocks_2022.config_pb2 import \
+    User as Shadowsocks2022UserPb2
 from ..proto.proxy.trojan.config_pb2 import Account as TrojanAccountPb2
 from ..proto.proxy.vless.account_pb2 import Account as VLESSAccountPb2
 from ..proto.proxy.vmess.account_pb2 import Account as VMessAccountPb2
@@ -59,10 +61,14 @@ class TrojanAccount(Account):
         return Message(TrojanAccountPb2(password=self.password))
 
 
-class ShadowsocksMethods(Enum):
+class ShadowsocksMethods(str, Enum):
     AES_128_GCM = 'aes-128-gcm'
     AES_256_GCM = 'aes-256-gcm'
     CHACHA20_POLY1305 = 'chacha20-ietf-poly1305'
+
+    SS_2022_BLAKE3_AES_128_GCM = '2022-blake3-aes-128-gcm'
+    SS_2022_BLAKE3_AES_256_GCM = '2022-blake3-aes-256-gcm'
+    SS_2022_BLAKE3_CHACHA20_POLY1305 = '2022-blake3-chacha20-poly1305'
 
 
 class ShadowsocksAccount(Account):
@@ -71,8 +77,25 @@ class ShadowsocksAccount(Account):
 
     @property
     def cipher_type(self):
+        if self.method.value.startswith('2022-'):
+            raise ValueError('Use Shadowsocks2022Account for 2022 methods')
         return self.method.name
 
     @property
     def message(self):
         return Message(ShadowsocksAccountPb2(password=self.password, cipher_type=self.cipher_type))
+
+
+class Shadowsocks2022Account(Account):
+    key: str
+    method: str
+
+    @property
+    def message(self):
+        return Message(
+            Shadowsocks2022UserPb2(
+                key=self.key,
+                email=self.email,
+                level=self.level,
+            )
+        )
