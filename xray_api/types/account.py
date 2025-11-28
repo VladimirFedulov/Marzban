@@ -9,12 +9,11 @@ from ..proto.proxy.shadowsocks.config_pb2 import \
     Account as ShadowsocksAccountPb2
 from ..proto.proxy.shadowsocks.config_pb2 import \
     CipherType as ShadowsocksCiphers
-from ..proto.proxy.shadowsocks_2022.config_pb2 import \
-    User as Shadowsocks2022UserPb2
 from ..proto.proxy.trojan.config_pb2 import Account as TrojanAccountPb2
 from ..proto.proxy.vless.account_pb2 import Account as VLESSAccountPb2
 from ..proto.proxy.vmess.account_pb2 import Account as VMessAccountPb2
 from .message import Message
+from ..proto.common.serial.typed_message_pb2 import TypedMessage
 
 
 class Account(BaseModel, ABC):
@@ -92,10 +91,25 @@ class Shadowsocks2022Account(Account):
 
     @property
     def message(self):
-        return Message(
-            Shadowsocks2022UserPb2(
-                key=self.key,
-                email=self.email,
-                level=self.level,
-            )
+        # SS2022 AddUser in xray-core expects account type "xray.proxy.shadowsocks_2022.Account"
+        # with a single string field `key` (field number 1). Build the wire payload manually
+        # to avoid depending on mismatched/generated proto stubs.
+        def _varint(n: int) -> bytes:
+            out = bytearray()
+            while True:
+                to_write = n & 0x7F
+                n >>= 7
+                if n:
+                    out.append(0x80 | to_write)
+                else:
+                    out.append(to_write)
+                    break
+            return bytes(out)
+
+        key_bytes = self.key.encode("utf-8")
+        # field 1, wire type 2 (length‑delimited) -> tag 0x0A
+        payload = b"\x0a" + _varint(len(key_bytes)) + key_bytes
+        return TypedMessage(
+            type="xray.proxy.shadowsocks_2022.Account",
+            value=payload,
         )

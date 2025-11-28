@@ -368,6 +368,13 @@ class XRayConfig(dict):
 
                 if isinstance(method, str) and method.startswith('2022-'):
                     self._validate_ss2022_server_psk(inbound['tag'], method, settings['server_psk'])
+                    # Ensure Xray treats the inbound as UserManager: keep at least one placeholder client.
+                    clients = inbound_settings.get('clients')
+                    if isinstance(clients, list) and len(clients) == 0:
+                        inbound_settings['clients'].append({
+                            "email": "__bootstrap__",
+                            "password": generate_ss2022_key(method)
+                        })
 
             self.inbounds.append(settings)
             self.inbounds_by_tag[inbound['tag']] = settings
