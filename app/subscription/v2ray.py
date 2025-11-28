@@ -19,6 +19,7 @@ from config import (
     USER_AGENT_TEMPLATE,
     V2RAY_SETTINGS_TEMPLATE,
     V2RAY_SUBSCRIPTION_TEMPLATE,
+    V2RAY_SUBSCRIPTION_TEMPLATE_RU,
 )
 
 
@@ -529,6 +530,7 @@ class V2rayJsonConfig(str):
     def __init__(self):
         self.config = []
         self.template = render_template(V2RAY_SUBSCRIPTION_TEMPLATE)
+        self.template_ru = render_template(V2RAY_SUBSCRIPTION_TEMPLATE_RU)
         self.mux_template = render_template(MUX_TEMPLATE)
         user_agent_data = json.loads(render_template(USER_AGENT_TEMPLATE))
 
@@ -554,7 +556,10 @@ class V2rayJsonConfig(str):
         del user_agent_data, grpc_user_agent_data
 
     def add_config(self, remarks, outbounds):
-        json_template = json.loads(self.template)
+        if "🇷🇺" in remarks.upper():
+            json_template = json.loads(self.template_ru)
+        else:
+            json_template = json.loads(self.template)
         json_template["remarks"] = remarks
         json_template["outbounds"] = outbounds + json_template["outbounds"]
         self.config.append(json_template)
@@ -855,7 +860,7 @@ class V2rayJsonConfig(str):
                         {
                             "id": id,
                             "alterId": 0,
-                            "email": "https://gozargah.github.io/marzban/",
+                            "email": "verygooduser",
                             "security": "auto"
                         }
                     ],
@@ -875,7 +880,7 @@ class V2rayJsonConfig(str):
                             "id": id,
                             "security": "auto",
                             "encryption": "none",
-                            "email": "https://gozargah.github.io/marzban/",
+                            "email": "verygooduser",
                             "alterId": 0,
                             "flow": flow
                         }
@@ -892,7 +897,7 @@ class V2rayJsonConfig(str):
                     "address": address,
                     "port": port,
                     "password": password,
-                    "email": "https://gozargah.github.io/marzban/",
+                    "email": "verygooduser",
                 }
             ]
         }
@@ -905,7 +910,7 @@ class V2rayJsonConfig(str):
                     "address": address,
                     "port": port,
                     "password": password,
-                    "email": "https://gozargah.github.io/marzban/",
+                    "email": "verygooduser",
                     "method": method,
                     "uot": False,
                 }
