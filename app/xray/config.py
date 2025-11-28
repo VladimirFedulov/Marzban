@@ -166,6 +166,21 @@ class XRayConfig(dict):
             )
 
     def _resolve_inbounds(self):
+        # At the moment Marzban stores a single Shadowsocks method/password per user.
+        # To avoid silently generating wrong keys, forbid multiple SS2022 inbounds.
+        ss2022_tags = [
+            inbound.get("tag")
+            for inbound in self.get("inbounds", [])
+            if inbound.get("protocol") == ProxyTypes.Shadowsocks.value
+            and isinstance(inbound.get("settings", {}).get("method"), str)
+            and inbound.get("settings", {}).get("method", "").startswith("2022-")
+        ]
+        if len(ss2022_tags) > 1:
+            raise ValueError(
+                "Only one Shadowsocks 2022 inbound is supported because users hold a single SS2022 credential. "
+                f"Found multiple SS2022 inbounds: {', '.join(filter(None, ss2022_tags))}"
+            )
+
         for inbound in self['inbounds']:
             if not inbound['protocol'] in ProxyTypes._value2member_map_:
                 continue
