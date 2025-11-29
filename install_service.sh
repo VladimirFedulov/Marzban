@@ -2,7 +2,7 @@
 
 SERVICE_NAME="marzban"
 SERVICE_DESCRIPTION="Marzban Service"
-SERVICE_DOCUMENTATION="https://github.com/Ferixy/MarzbanOnLifeSupport"
+SERVICE_DOCUMENTATION="https://github.com/VladimirFedulov/Marzban"
 MAIN_PY_PATH="$PWD/main.py"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
 
