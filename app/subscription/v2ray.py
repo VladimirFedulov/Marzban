@@ -20,6 +20,7 @@ from config import (
     V2RAY_SETTINGS_TEMPLATE,
     V2RAY_SUBSCRIPTION_TEMPLATE,
     V2RAY_SUBSCRIPTION_TEMPLATE_RU,
+    V2RAY_META_CONFIG,
 )
 
 
@@ -531,6 +532,7 @@ class V2rayJsonConfig(str):
         self.config = []
         self.template = render_template(V2RAY_SUBSCRIPTION_TEMPLATE)
         self.template_ru = render_template(V2RAY_SUBSCRIPTION_TEMPLATE_RU)
+        self.meta_config = render_template(V2RAY_META_CONFIG)
         self.mux_template = render_template(MUX_TEMPLATE)
         user_agent_data = json.loads(render_template(USER_AGENT_TEMPLATE))
 
@@ -561,6 +563,18 @@ class V2rayJsonConfig(str):
         else:
             json_template = json.loads(self.template)
         json_template["remarks"] = remarks
+
+        try:
+            meta_configs = json.loads(self.meta_config)
+            for meta_rule in meta_configs:
+                if meta_rule.get("serverName", "").upper() in remarks.upper():
+                    meta_data = {k: v for k, v in meta_rule.items() if k != "serverName"}
+                    if meta_data:
+                        json_template["meta"] = meta_data
+                    break
+        except:
+            pass
+
         json_template["outbounds"] = outbounds + json_template["outbounds"]
         self.config.append(json_template)
 
