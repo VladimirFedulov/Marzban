@@ -106,8 +106,12 @@ def add_user(dbuser: "DBUser"):
 
             _add_user_to_inbound(xray.api, inbound_tag, account)  # main core
             for node in list(xray.nodes.values()):
-                if node.connected and node.started:
-                    _add_user_to_inbound(node.api, inbound_tag, account)
+                # Не допускаем падения при недоступной ноде
+                try:
+                    if node.connected and node.started:
+                        _add_user_to_inbound(node.api, inbound_tag, account)
+                except Exception as e:
+                    logger.warning(f"XRAY node check/add failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\": {e}")
 
 
 def remove_user(dbuser: "DBUser"):
@@ -116,8 +120,12 @@ def remove_user(dbuser: "DBUser"):
     for inbound_tag in xray.config.inbounds_by_tag:
         _remove_user_from_inbound(xray.api, inbound_tag, email)
         for node in list(xray.nodes.values()):
-            if node.connected and node.started:
-                _remove_user_from_inbound(node.api, inbound_tag, email)
+            # Не допускаем падения при недоступной ноде
+            try:
+                if node.connected and node.started:
+                    _remove_user_from_inbound(node.api, inbound_tag, email)
+            except Exception as e:
+                logger.warning(f"XRAY node check/remove failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\": {e}")
 
 
 def update_user(dbuser: "DBUser"):
@@ -152,8 +160,12 @@ def update_user(dbuser: "DBUser"):
 
             _alter_inbound_user(xray.api, inbound_tag, account)  # main core
             for node in list(xray.nodes.values()):
-                if node.connected and node.started:
-                    _alter_inbound_user(node.api, inbound_tag, account)
+                # Не допускаем падения при недоступной ноде
+                try:
+                    if node.connected and node.started:
+                        _alter_inbound_user(node.api, inbound_tag, account)
+                except Exception as e:
+                    logger.warning(f"XRAY node check/alter failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\": {e}")
 
     for inbound_tag in xray.config.inbounds_by_tag:
         if inbound_tag in active_inbounds:
@@ -161,8 +173,12 @@ def update_user(dbuser: "DBUser"):
         # remove disabled inbounds
         _remove_user_from_inbound(xray.api, inbound_tag, email)
         for node in list(xray.nodes.values()):
-            if node.connected and node.started:
-                _remove_user_from_inbound(node.api, inbound_tag, email)
+            # Не допускаем падения при недоступной ноде
+            try:
+                if node.connected and node.started:
+                    _remove_user_from_inbound(node.api, inbound_tag, email)
+            except Exception as e:
+                logger.warning(f"XRAY node check/remove (disabled inbound) failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\": {e}")
 
 
 def remove_node(node_id: int):

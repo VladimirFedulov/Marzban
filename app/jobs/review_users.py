@@ -70,7 +70,7 @@ def review():
                     if user.next_plan.fire_on_either:
                         reset_user_by_next_report(db, user)
                         continue
-
+                        
                     elif limited and expired:
                         reset_user_by_next_report(db, user)
                         continue
@@ -84,7 +84,11 @@ def review():
                     add_notification_reminders(db, user, now)
                 continue
 
-            xray.operations.remove_user(user)
+            # При недоступности XRAY-нод не допускаем падения задачи: статус все равно обновляем
+            try:
+                xray.operations.remove_user(user)
+            except Exception as e:
+                logger.warning(f"Failed to remove user \"{user.username}\" from XRAY: {e}")
             update_user_status(db, user, status)
 
             report.status_change(username=user.username, status=status,
