@@ -86,7 +86,7 @@ def add_user(dbuser: "DBUser"):
 
             _add_user_to_inbound(xray.api, inbound_tag, account)  # main core
             for node in list(xray.nodes.values()):
-                # Не допускаем падения при недоступной ноде
+                # Don't break "review" when ConnectionError
                 try:
                     if node.connected and node.started:
                         _add_user_to_inbound(node.api, inbound_tag, account)
@@ -100,7 +100,7 @@ def remove_user(dbuser: "DBUser"):
     for inbound_tag in xray.config.inbounds_by_tag:
         _remove_user_from_inbound(xray.api, inbound_tag, email)
         for node in list(xray.nodes.values()):
-            # Не допускаем падения при недоступной ноде
+            # Don't break "review" when ConnectionError
             try:
                 if node.connected and node.started:
                     _remove_user_from_inbound(node.api, inbound_tag, email)
@@ -140,7 +140,7 @@ def update_user(dbuser: "DBUser"):
 
             _alter_inbound_user(xray.api, inbound_tag, account)  # main core
             for node in list(xray.nodes.values()):
-                # Не допускаем падения при недоступной ноде
+                # Don't break "review" when ConnectionError
                 try:
                     if node.connected and node.started:
                         _alter_inbound_user(node.api, inbound_tag, account)
@@ -153,7 +153,7 @@ def update_user(dbuser: "DBUser"):
         # remove disabled inbounds
         _remove_user_from_inbound(xray.api, inbound_tag, email)
         for node in list(xray.nodes.values()):
-            # Не допускаем падения при недоступной ноде
+            # Don't break "review" when ConnectionError
             try:
                 if node.connected and node.started:
                     _remove_user_from_inbound(node.api, inbound_tag, email)

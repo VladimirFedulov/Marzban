@@ -84,7 +84,7 @@ def review():
                     add_notification_reminders(db, user, now)
                 continue
 
-            # При недоступности XRAY-нод не допускаем падения задачи: статус все равно обновляем
+            # Don't break "review" when ConnectionError: update status of user anyway
             try:
                 xray.operations.remove_user(user)
             except Exception as e:
