@@ -46,7 +46,11 @@ def add_notification_reminders(db: Session, user: "User", now: datetime = dateti
 def reset_user_by_next_report(db: Session, user: "User"):
     user = reset_user_by_next(db, user)
 
-    xray.operations.update_user(user)
+    # If the node is unavailable don't stop job, just log in and comtinue
+    try:
+        xray.operations.update_user(user)
+    except Exception as e:
+        logger.warning(f"Failed to update user on XRAY during reset_user_by_next for \"{user.username}\": {e}")
 
     report.user_data_reset_by_next(user=UserResponse.model_validate(user), user_admin=user.admin)
 
