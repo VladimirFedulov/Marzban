@@ -14,6 +14,7 @@ from app.db import GetDB
 from app.db.models import Admin, NodeUsage, NodeUserUsage, System, User
 from config import (
     DISABLE_RECORDING_NODE_USAGE,
+    JOB_RECORD_USER_USAGES_WORKERS,
     JOB_RECORD_NODE_USAGES_INTERVAL,
     JOB_RECORD_USER_USAGES_INTERVAL,
 )
@@ -45,12 +46,14 @@ def safe_execute(db: Session, stmt, params=None):
         db.commit()
 
 
-def record_user_stats(params: list, node_id: Union[int, None],
+def record_user_stats(params: list,
+                      node_id: Union[int, None],
                       consumption_factor: int = 1):
     if not params:
         return
 
-    created_at = datetime.fromisoformat(datetime.utcnow().strftime('%Y-%m-%dT%H:00:00'))
+    created_at = datetime.fromisoformat(
+        datetime.utcnow().strftime('%Y-%m-%dT%H:00:00'))
 
     with GetDB() as db:
         # make user usage row if doesn't exist
@@ -66,12 +69,10 @@ def record_user_stats(params: list, node_id: Union[int, None],
             uids_to_insert.add(uid)
 
         if uids_to_insert:
-            stmt = insert(NodeUserUsage).values(
-                user_id=bindparam('uid'),
-                created_at=created_at,
-                node_id=node_id,
-                used_traffic=0
-            )
+            stmt = insert(NodeUserUsage).values(user_id=bindparam('uid'),
+                                                created_at=created_at,
+                                                node_id=node_id,
+                                                used_traffic=0)
             safe_execute(db, stmt, [{'uid': uid} for uid in uids_to_insert])
 
         # record
@@ -87,7 +88,8 @@ def record_node_stats(params: dict, node_id: Union[int, None]):
     if not params:
         return
 
-    created_at = datetime.fromisoformat(datetime.utcnow().strftime('%Y-%m-%dT%H:00:00'))
+    created_at = datetime.fromisoformat(
+        datetime.utcnow().strftime('%Y-%m-%dT%H:00:00'))
 
     with GetDB() as db:
 
@@ -96,7 +98,10 @@ def record_node_stats(params: dict, node_id: Union[int, None]):
             where(and_(NodeUsage.node_id == node_id, NodeUsage.created_at == created_at))
         notfound = db.execute(select_stmt).first() is None
         if notfound:
-            stmt = insert(NodeUsage).values(created_at=created_at, node_id=node_id, uplink=0, downlink=0)
+            stmt = insert(NodeUsage).values(created_at=created_at,
+                                            node_id=node_id,
+                                            uplink=0,
+                                            downlink=0)
             safe_execute(db, stmt)
 
         # record
@@ -110,9 +115,13 @@ def record_node_stats(params: dict, node_id: Union[int, None]):
 def get_users_stats(api: XRayAPI):
     try:
         params = defaultdict(int)
-        for stat in filter(attrgetter('value'), api.get_users_stats(reset=True, timeout=30)):
+        for stat in filter(attrgetter('value'),
+                           api.get_users_stats(reset=True, timeout=30)):
             params[stat.name.split('.', 1)[0]] += stat.value
-        params = list({"uid": uid, "value": value} for uid, value in params.items())
+        params = list({
+            "uid": uid,
+            "value": value
+        } for uid, value in params.items())
         return params
     except xray_exc.XrayError:
         return []
@@ -120,8 +129,14 @@ def get_users_stats(api: XRayAPI):
 
 def get_outbounds_stats(api: XRayAPI):
     try:
-        params = [{"up": stat.value, "down": 0} if stat.link == "uplink" else {"up": 0, "down": stat.value}
-                  for stat in filter(attrgetter('value'), api.get_outbounds_stats(reset=True, timeout=10))]
+        params = [{
+            "up": stat.value,
+            "down": 0
+        } if stat.link == "uplink" else {
+            "up": 0,
+            "down": stat.value
+        } for stat in filter(attrgetter('value'),
+                             api.get_outbounds_stats(reset=True, timeout=10))]
         return params
     except xray_exc.XrayError:
         return []
@@ -129,23 +144,38 @@ def get_outbounds_stats(api: XRayAPI):
 
 def record_user_usages():
     api_instances = {None: xray.api}
-    usage_coefficient = {None: 1}  # default usage coefficient for the main api instance
+    usage_coefficient = {
+        None: 1
+    }  # default usage coefficient for the main api instance
 
     for node_id, node in list(xray.nodes.items()):
         if node.connected and node.started:
             api_instances[node_id] = node.api
-            usage_coefficient[node_id] = node.usage_coefficient  # fetch the usage coefficient
+            usage_coefficient[
+                node_id] = node.usage_coefficient  # fetch the usage coefficient
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {node_id: executor.submit(get_users_stats, api) for node_id, api in api_instances.items()}
-    api_params = {node_id: future.result() for node_id, future in futures.items()}
+    with ThreadPoolExecutor(
+            max_workers=JOB_RECORD_USER_USAGES_WORKERS) as executor:
+        futures = {
+            node_id: executor.submit(get_users_stats, api)
+            for node_id, api in api_instances.items()
+        }
+    api_params = {
+        node_id: future.result()
+        for node_id, future in futures.items()
+    }
 
     users_usage = defaultdict(int)
     for node_id, params in api_params.items():
-        coefficient = usage_coefficient.get(node_id, 1)  # get the usage coefficient for the node
+        coefficient = usage_coefficient.get(
+            node_id, 1)  # get the usage coefficient for the node
         for param in params:
-            users_usage[param['uid']] += int(param['value'] * coefficient)  # apply the usage coefficient
-    users_usage = list({"uid": uid, "value": value} for uid, value in users_usage.items())
+            users_usage[param['uid']] += int(
+                param['value'] * coefficient)  # apply the usage coefficient
+    users_usage = list({
+        "uid": uid,
+        "value": value
+    } for uid, value in users_usage.items())
     if not users_usage:
         return
 
@@ -169,7 +199,10 @@ def record_user_usages():
 
         safe_execute(db, stmt, users_usage)
 
-        admin_data = [{"admin_id": admin_id, "value": value} for admin_id, value in admin_usage.items()]
+        admin_data = [{
+            "admin_id": admin_id,
+            "value": value
+        } for admin_id, value in admin_usage.items()]
         if admin_data:
             admin_update_stmt = update(Admin). \
                 where(Admin.id == bindparam('admin_id')). \
@@ -189,9 +222,16 @@ def record_node_usages():
         if node.connected and node.started:
             api_instances[node_id] = node.api
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {node_id: executor.submit(get_outbounds_stats, api) for node_id, api in api_instances.items()}
-    api_params = {node_id: future.result() for node_id, future in futures.items()}
+    with ThreadPoolExecutor(
+            max_workers=JOB_RECORD_USER_USAGES_WORKERS) as executor:
+        futures = {
+            node_id: executor.submit(get_outbounds_stats, api)
+            for node_id, api in api_instances.items()
+        }
+    api_params = {
+        node_id: future.result()
+        for node_id, future in futures.items()
+    }
 
     total_up = 0
     total_down = 0
@@ -204,10 +244,8 @@ def record_node_usages():
 
     # record nodes usage
     with GetDB() as db:
-        stmt = update(System).values(
-            uplink=System.uplink + total_up,
-            downlink=System.downlink + total_down
-        )
+        stmt = update(System).values(uplink=System.uplink + total_up,
+                                     downlink=System.downlink + total_down)
         safe_execute(db, stmt)
 
     if DISABLE_RECORDING_NODE_USAGE:
@@ -217,9 +255,13 @@ def record_node_usages():
         record_node_stats(params, node_id)
 
 
-scheduler.add_job(record_user_usages, 'interval',
+scheduler.add_job(record_user_usages,
+                  'interval',
                   seconds=JOB_RECORD_USER_USAGES_INTERVAL,
-                  coalesce=True, max_instances=1)
-scheduler.add_job(record_node_usages, 'interval',
+                  coalesce=True,
+                  max_instances=1)
+scheduler.add_job(record_node_usages,
+                  'interval',
                   seconds=JOB_RECORD_NODE_USAGES_INTERVAL,
-                  coalesce=True, max_instances=1)
+                  coalesce=True,
+                  max_instances=1)
