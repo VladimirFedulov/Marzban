@@ -20,6 +20,7 @@ from config import (
     V2RAY_SETTINGS_TEMPLATE,
     V2RAY_SUBSCRIPTION_TEMPLATE,
     V2RAY_SUBSCRIPTION_TEMPLATE_RU,
+    V2RAY_SUBSCRIPTION_TEMPLATES,
     V2RAY_META_CONFIG,
 )
 
@@ -532,6 +533,14 @@ class V2rayJsonConfig(str):
         self.config = []
         self.template = render_template(V2RAY_SUBSCRIPTION_TEMPLATE)
         self.template_ru = render_template(V2RAY_SUBSCRIPTION_TEMPLATE_RU)
+
+        self.templates = {}
+        for keyword, template_path in V2RAY_SUBSCRIPTION_TEMPLATES.items():
+            try:
+                self.templates[keyword.upper()] = render_template(template_path)
+            except TemplateNotFound:
+                pass
+
         self.meta_config = render_template(V2RAY_META_CONFIG)
         self.mux_template = render_template(MUX_TEMPLATE)
         user_agent_data = json.loads(render_template(USER_AGENT_TEMPLATE))
@@ -558,10 +567,17 @@ class V2rayJsonConfig(str):
         del user_agent_data, grpc_user_agent_data
 
     def add_config(self, remarks, outbounds):
-        if "🇷🇺" in remarks.upper():
-            json_template = json.loads(self.template_ru)
-        else:
-            json_template = json.loads(self.template)
+        json_template = None
+        for keyword, template in self.templates.items():
+            if keyword in remarks.upper():
+                json_template = json.loads(template)
+                break
+
+        if json_template is None:
+            if "🇷🇺" in remarks.upper():
+                json_template = json.loads(self.template_ru)
+            else:
+                json_template = json.loads(self.template)
         json_template["remarks"] = remarks
 
         try:

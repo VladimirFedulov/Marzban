@@ -64,6 +64,18 @@ MUX_TEMPLATE = config("MUX_TEMPLATE", default="mux/default.json")
 
 V2RAY_SUBSCRIPTION_TEMPLATE = config("V2RAY_SUBSCRIPTION_TEMPLATE", default="v2ray/default.json")
 V2RAY_SUBSCRIPTION_TEMPLATE_RU = config("V2RAY_SUBSCRIPTION_TEMPLATE_RU", default="v2ray/default_ru.json")
+V2RAY_TEMPLATE_MAPPING = config("V2RAY_TEMPLATE_MAPPING", default="")
+V2RAY_SUBSCRIPTION_TEMPLATES = {}
+if V2RAY_TEMPLATE_MAPPING:
+    try:
+        V2RAY_SUBSCRIPTION_TEMPLATES = {
+            k.strip(): v.strip()
+            for k, v in (
+                item.split(":") for item in V2RAY_TEMPLATE_MAPPING.split(",")
+            )
+        }
+    except ValueError:
+        pass
 V2RAY_SETTINGS_TEMPLATE = config("V2RAY_SETTINGS_TEMPLATE", default="v2ray/settings.json")
 V2RAY_META_CONFIG = config("V2RAY_META_CONFIG", default="v2ray/meta_config.json")
 
