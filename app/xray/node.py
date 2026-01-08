@@ -13,6 +13,7 @@ import requests
 import rpyc
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.poolmanager import PoolManager
+from urllib3.util.retry import Retry
 from websocket import WebSocketConnectionClosedException, WebSocketTimeoutException, create_connection
 
 from app.xray.config import XRayConfig
@@ -59,8 +60,18 @@ class ReSTXRayNode:
         self._keyfile = string_to_temp_file(ssl_key)
         self._certfile = string_to_temp_file(ssl_cert)
 
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=0.5,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
+            connect=5,
+            read=5,
+            redirect=5,
+        )
+        adapter = SANIgnoringAdaptor(max_retries=retry_strategy)
         self.session = requests.Session()
-        self.session.mount('https://', SANIgnoringAdaptor())
+        self.session.mount('https://', adapter)
         self.session.cert = (self._certfile.name, self._keyfile.name)
 
         self._session_id = None
