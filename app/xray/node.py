@@ -125,6 +125,11 @@ class ReSTXRayNode:
             exc = NodeAPIError(res.status_code, data['detail'])
             raise exc
 
+    def _fetch_server_certificate(self, timeout: int = 30) -> str:
+        with socket.create_connection((self.address, self.port), timeout=timeout) as sock:
+            with self._ssl_context.wrap_socket(sock, server_hostname=self.address) as ssock:
+                return ssl.DER_cert_to_PEM_cert(ssock.getpeercert(binary_form=True))
+
     @property
     def connected(self):
         if not self._session_id:
@@ -159,7 +164,7 @@ class ReSTXRayNode:
         return self._api
 
     def connect(self):
-        self._node_cert = ssl.get_server_certificate((self.address, self.port))
+        self._node_cert = self._fetch_server_certificate(timeout=30)
         self._node_certfile = string_to_temp_file(self._node_cert)
         self.session.verify = self._node_certfile.name
 
