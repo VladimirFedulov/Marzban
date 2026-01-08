@@ -15,7 +15,9 @@ from app.db.models import Admin, NodeUsage, NodeUserUsage, System, User
 from config import (
     DISABLE_RECORDING_NODE_USAGE,
     JOB_RECORD_USER_USAGES_WORKERS,
+    JOB_RECORD_NODE_USAGES_MAX_INSTANCES,
     JOB_RECORD_NODE_USAGES_INTERVAL,
+    JOB_RECORD_USER_USAGES_MAX_INSTANCES,
     JOB_RECORD_USER_USAGES_INTERVAL,
 )
 from xray_api import XRay as XRayAPI
@@ -259,9 +261,9 @@ scheduler.add_job(record_user_usages,
                   'interval',
                   seconds=JOB_RECORD_USER_USAGES_INTERVAL,
                   coalesce=True,
-                  max_instances=1)
+                  max_instances=JOB_RECORD_USER_USAGES_MAX_INSTANCES)
 scheduler.add_job(record_node_usages,
                   'interval',
                   seconds=JOB_RECORD_NODE_USAGES_INTERVAL,
                   coalesce=True,
-                  max_instances=1)
+                  max_instances=JOB_RECORD_NODE_USAGES_MAX_INSTANCES)
