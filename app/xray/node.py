@@ -1,4 +1,5 @@
 import socket
+import logging
 import re
 import ssl
 import tempfile
@@ -61,8 +62,8 @@ class ReSTXRayNode:
         self._certfile = string_to_temp_file(ssl_cert)
 
         retry_strategy = Retry(
-            total=3,
-            backoff_factor=0.5,
+            total=5,
+            backoff_factor=1,
             status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
             connect=5,
@@ -115,7 +116,7 @@ class ReSTXRayNode:
             res = self.session.post(self._rest_api_url + path, timeout=timeout,
                                     json={"session_id": self._session_id, **params})
             data = res.json()
-        except Exception as e:
+        except requests.exceptions.RequestException as e:
             exc = NodeAPIError(0, str(e))
             raise exc
 
@@ -146,6 +147,9 @@ class ReSTXRayNode:
             raise ConnectionError("Node is not connected")
 
         if not self._api:
+            if not self._started:
+                self._started = self.started
+
             if self._started is True:
                 self._api = XRayAPI(
                     address=self.address,
@@ -253,10 +257,10 @@ class ReSTXRayNode:
                         break
                     except WebSocketTimeoutException:
                         pass
-                    except Exception:
-                        pass
-            except Exception:
-                pass
+                    except Exception as e:
+                        logging.warning("Couldn't fetch logs from the node %s, error: %s", self.address, e)
+            except Exception as e:
+                logging.warning("Couldn't connect to the node %s for fetching logs, error: %s", self.address, e)
             time.sleep(2)
 
     @contextmanager
