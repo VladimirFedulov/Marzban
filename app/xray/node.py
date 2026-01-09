@@ -61,13 +61,13 @@ class ReSTXRayNode:
         self._certfile = string_to_temp_file(ssl_cert)
 
         retry_strategy = Retry(
-            total=3,
-            backoff_factor=0.5,
+            total=1,
+            backoff_factor=1,
             status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
-            connect=5,
-            read=5,
-            redirect=5,
+            connect=1,
+            read=1,
+            redirect=1,
         )
         adapter = SANIgnoringAdaptor(max_retries=retry_strategy)
         self.session = requests.Session()
