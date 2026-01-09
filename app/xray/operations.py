@@ -116,6 +116,7 @@ def add_user(dbuser: "DBUser"):
                         f"XRAY node add failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\""
                         f" (node {node_id}): {e}"
                     )
+                    mark_node_error(node_id, str(e))
 
 
 def remove_user(dbuser: "DBUser"):
@@ -132,6 +133,7 @@ def remove_user(dbuser: "DBUser"):
                     f"XRAY node remove failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\""
                     f" (node {node_id}): {e}"
                 )
+                mark_node_error(node_id, str(e))
 
 
 def update_user(dbuser: "DBUser"):
@@ -174,6 +176,7 @@ def update_user(dbuser: "DBUser"):
                         f"XRAY node alter failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\""
                         f" (node {node_id}): {e}"
                     )
+                    mark_node_error(node_id, str(e))
 
     for inbound_tag in xray.config.inbounds_by_tag:
         if inbound_tag in active_inbounds:
@@ -188,6 +191,7 @@ def update_user(dbuser: "DBUser"):
                     f"XRAY node remove (disabled inbound) failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\""
                     f" (node {node_id}): {e}"
                 )
+                mark_node_error(node_id, str(e))
 
 
 def remove_node(node_id: int):
