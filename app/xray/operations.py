@@ -1,7 +1,7 @@
 from functools import lru_cache
 import threading
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -81,6 +81,7 @@ def _alter_inbound_user(api: XRayAPI, inbound_tag: str, account: Account):
 def add_user(dbuser: "DBUser"):
     user = UserResponse.model_validate(dbuser)
     email = f"{dbuser.id}.{dbuser.username}"
+    healthy_nodes = get_healthy_nodes()
 
     for proxy_type, inbound_tags in user.inbounds.items():
         for inbound_tag in inbound_tags:
@@ -107,32 +108,36 @@ def add_user(dbuser: "DBUser"):
                 account.flow = XTLSFlows.NONE
 
             _add_user_to_inbound(xray.api, inbound_tag, account)  # main core
-            for node in list(xray.nodes.values()):
-                # Не допускаем падения при недоступной ноде
+            for node_id, node in healthy_nodes:
                 try:
-                    if node.connected and node.started:
-                        _add_user_to_inbound(node.api, inbound_tag, account)
+                    _add_user_to_inbound(node.api, inbound_tag, account)
                 except Exception as e:
-                    logger.warning(f"XRAY node check/add failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\": {e}")
+                    logger.warning(
+                        f"XRAY node add failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\""
+                        f" (node {node_id}): {e}"
+                    )
 
 
 def remove_user(dbuser: "DBUser"):
     email = f"{dbuser.id}.{dbuser.username}"
+    healthy_nodes = get_healthy_nodes()
 
     for inbound_tag in xray.config.inbounds_by_tag:
         _remove_user_from_inbound(xray.api, inbound_tag, email)
-        for node in list(xray.nodes.values()):
-            # Не допускаем падения при недоступной ноде
+        for node_id, node in healthy_nodes:
             try:
-                if node.connected and node.started:
-                    _remove_user_from_inbound(node.api, inbound_tag, email)
+                _remove_user_from_inbound(node.api, inbound_tag, email)
             except Exception as e:
-                logger.warning(f"XRAY node check/remove failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\": {e}")
+                logger.warning(
+                    f"XRAY node remove failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\""
+                    f" (node {node_id}): {e}"
+                )
 
 
 def update_user(dbuser: "DBUser"):
     user = UserResponse.model_validate(dbuser)
     email = f"{dbuser.id}.{dbuser.username}"
+    healthy_nodes = get_healthy_nodes()
 
     active_inbounds = []
     for proxy_type, inbound_tags in user.inbounds.items():
@@ -161,26 +166,28 @@ def update_user(dbuser: "DBUser"):
                 account.flow = XTLSFlows.NONE
 
             _alter_inbound_user(xray.api, inbound_tag, account)  # main core
-            for node in list(xray.nodes.values()):
-                # Не допускаем падения при недоступной ноде
+            for node_id, node in healthy_nodes:
                 try:
-                    if node.connected and node.started:
-                        _alter_inbound_user(node.api, inbound_tag, account)
+                    _alter_inbound_user(node.api, inbound_tag, account)
                 except Exception as e:
-                    logger.warning(f"XRAY node check/alter failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\": {e}")
+                    logger.warning(
+                        f"XRAY node alter failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\""
+                        f" (node {node_id}): {e}"
+                    )
 
     for inbound_tag in xray.config.inbounds_by_tag:
         if inbound_tag in active_inbounds:
             continue
         # remove disabled inbounds
         _remove_user_from_inbound(xray.api, inbound_tag, email)
-        for node in list(xray.nodes.values()):
-            # Не допускаем падения при недоступной ноде
+        for node_id, node in healthy_nodes:
             try:
-                if node.connected and node.started:
-                    _remove_user_from_inbound(node.api, inbound_tag, email)
+                _remove_user_from_inbound(node.api, inbound_tag, email)
             except Exception as e:
-                logger.warning(f"XRAY node check/remove (disabled inbound) failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\": {e}")
+                logger.warning(
+                    f"XRAY node remove (disabled inbound) failed for user \"{dbuser.username}\" on inbound \"{inbound_tag}\""
+                    f" (node {node_id}): {e}"
+                )
 
 
 def remove_node(node_id: int):
@@ -221,12 +228,25 @@ def _change_node_status(node_id: int, status: NodeStatus, message: str = None, v
                 remove_node(dbnode.id)
                 return
 
+            if status == NodeStatus.disabled:
+                version = None
+            elif version is None:
+                version = dbnode.xray_version
+
+            if (
+                dbnode.status == status
+                and dbnode.message == message
+                and dbnode.xray_version == version
+            ):
+                return
+
             crud.update_node_status(db, dbnode, status, message, version)
         except SQLAlchemyError:
             db.rollback()
 
 
 def mark_node_error(node_id: int, message: str):
+    _set_node_health(node_id, False)
     _change_node_status(node_id, NodeStatus.error, message=message)
 
 
@@ -234,6 +254,30 @@ global _connecting_nodes
 _connecting_nodes = {}
 _connection_lock = threading.Lock()
 _connection_backoff = {}
+_node_health: Dict[int, Dict[str, float]] = {}
+_node_health_lock = threading.Lock()
+_node_health_ttl = 30.0
+
+
+def _set_node_health(node_id: int, ok: bool):
+    with _node_health_lock:
+        _node_health[node_id] = {"ok": ok, "checked_at": time.monotonic()}
+
+
+def get_healthy_nodes() -> List[Tuple[int, XRayNode]]:
+    now = time.monotonic()
+    healthy_nodes: List[Tuple[int, XRayNode]] = []
+    with _node_health_lock:
+        for node_id, node in list(xray.nodes.items()):
+            entry = _node_health.get(node_id)
+            if not entry:
+                continue
+            if not entry.get("ok"):
+                continue
+            if now - entry.get("checked_at", 0) > _node_health_ttl:
+                continue
+            healthy_nodes.append((node_id, node))
+    return healthy_nodes
 
 
 def _connection_allowed(node_id: int) -> bool:
@@ -295,11 +339,13 @@ def connect_node(node_id, config=None):
         node.start(config)
         version = node.get_version()
         _change_node_status(node_id, NodeStatus.connected, version=version)
+        _set_node_health(node_id, True)
         logger.info(f"Connected to \"{dbnode.name}\" node, xray run on v{version}")
         _clear_connection_backoff(node_id)
 
     except Exception as e:
         _change_node_status(node_id, NodeStatus.error, message=str(e))
+        _set_node_health(node_id, False)
         logger.info(f"Unable to connect to \"{dbnode.name}\" node: {e}")
         _record_connection_failure(node_id)
 
@@ -333,16 +379,23 @@ def restart_node(node_id, config=None):
         node.restart(config)
         version = node.get_version()
         _change_node_status(node_id, NodeStatus.connected, version=version)
+        _set_node_health(node_id, True)
         _clear_connection_backoff(node_id)
         logger.info(f"Xray core of \"{dbnode.name}\" node restarted")
     except Exception as e:
         _change_node_status(node_id, NodeStatus.error, message=str(e))
+        _set_node_health(node_id, False)
         logger.info(f"Unable to restart node {node_id}: {e}")
         _record_connection_failure(node_id)
         try:
             node.disconnect()
         except Exception:
             pass
+
+
+def mark_node_connected(node_id: int, version: str = None):
+    _set_node_health(node_id, True)
+    _change_node_status(node_id, NodeStatus.connected, version=version)
 
 
 __all__ = [
@@ -352,5 +405,7 @@ __all__ = [
     "remove_node",
     "connect_node",
     "mark_node_error",
+    "mark_node_connected",
+    "get_healthy_nodes",
     "restart_node",
 ]
