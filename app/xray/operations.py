@@ -226,6 +226,10 @@ def _change_node_status(node_id: int, status: NodeStatus, message: str = None, v
             db.rollback()
 
 
+def mark_node_error(node_id: int, message: str):
+    _change_node_status(node_id, NodeStatus.error, message=message)
+
+
 global _connecting_nodes
 _connecting_nodes = {}
 _connection_lock = threading.Lock()
@@ -327,6 +331,9 @@ def restart_node(node_id, config=None):
             config = xray.config.include_db_users()
 
         node.restart(config)
+        version = node.get_version()
+        _change_node_status(node_id, NodeStatus.connected, version=version)
+        _clear_connection_backoff(node_id)
         logger.info(f"Xray core of \"{dbnode.name}\" node restarted")
     except Exception as e:
         _change_node_status(node_id, NodeStatus.error, message=str(e))
@@ -344,5 +351,6 @@ __all__ = [
     "add_node",
     "remove_node",
     "connect_node",
+    "mark_node_error",
     "restart_node",
 ]
