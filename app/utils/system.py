@@ -2,6 +2,7 @@ import ipaddress
 import math
 import secrets
 import socket
+import threading
 import time
 from dataclasses import dataclass
 
@@ -72,6 +73,7 @@ class RealtimeBandwidthStat:
 
 rt_bw = RealtimeBandwidth(
     incoming_bytes=0, outgoing_bytes=0, incoming_packets=0, outgoing_packets=0)
+rt_bw_lock = threading.Lock()
 
 
 # sample time is 2 seconds, values lower than this may not produce good results
@@ -83,14 +85,19 @@ rt_bw = RealtimeBandwidth(
 )
 def record_realtime_bandwidth() -> None:
     global rt_bw
-    last_perf_counter = rt_bw.last_perf_counter
-    io = psutil.net_io_counters()
-    rt_bw.last_perf_counter = time.perf_counter()
-    sample_time = rt_bw.last_perf_counter - last_perf_counter
-    rt_bw.incoming_bytes, rt_bw.bytes_recv = round((io.bytes_recv - rt_bw.bytes_recv) / sample_time), io.bytes_recv
-    rt_bw.outgoing_bytes, rt_bw.bytes_sent = round((io.bytes_sent - rt_bw.bytes_sent) / sample_time), io.bytes_sent
-    rt_bw.incoming_packets, rt_bw.packets_recv = round((io.packets_recv - rt_bw.packets_recv) / sample_time), io.packets_recv
-    rt_bw.outgoing_packets, rt_bw.packets_sent = round((io.packets_sent - rt_bw.packets_sent) / sample_time), io.packets_sent
+    if not rt_bw_lock.acquire(blocking=False):
+        return
+    try:
+        last_perf_counter = rt_bw.last_perf_counter
+        io = psutil.net_io_counters()
+        rt_bw.last_perf_counter = time.perf_counter()
+        sample_time = rt_bw.last_perf_counter - last_perf_counter
+        rt_bw.incoming_bytes, rt_bw.bytes_recv = round((io.bytes_recv - rt_bw.bytes_recv) / sample_time), io.bytes_recv
+        rt_bw.outgoing_bytes, rt_bw.bytes_sent = round((io.bytes_sent - rt_bw.bytes_sent) / sample_time), io.bytes_sent
+        rt_bw.incoming_packets, rt_bw.packets_recv = round((io.packets_recv - rt_bw.packets_recv) / sample_time), io.packets_recv
+        rt_bw.outgoing_packets, rt_bw.packets_sent = round((io.packets_sent - rt_bw.packets_sent) / sample_time), io.packets_sent
+    finally:
+        rt_bw_lock.release()
 
 
 def realtime_bandwidth() -> RealtimeBandwidthStat:
