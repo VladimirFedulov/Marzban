@@ -1,3 +1,5 @@
+import os
+
 from decouple import config
 from dotenv import load_dotenv
 
@@ -10,7 +12,9 @@ SQLIALCHEMY_MAX_OVERFLOW = config("SQLIALCHEMY_MAX_OVERFLOW", cast=int, default=
 
 UVICORN_HOST = config("UVICORN_HOST", default="0.0.0.0")
 UVICORN_PORT = config("UVICORN_PORT", cast=int, default=8000)
+UVICORN_WORKERS = config("UVICORN_WORKERS", cast=int, default=int(os.cpu_count() * 0.5) or 1)
 UVICORN_UDS = config("UVICORN_UDS", default=None)
+REDIS_URL = config("REDIS_URL", default="redis://localhost:6379/0")
 UVICORN_SSL_CERTFILE = config("UVICORN_SSL_CERTFILE", default=None)
 UVICORN_SSL_KEYFILE = config("UVICORN_SSL_KEYFILE", default=None)
 UVICORN_SSL_CA_TYPE = config("UVICORN_SSL_CA_TYPE", default="public").lower()

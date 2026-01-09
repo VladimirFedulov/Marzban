@@ -179,7 +179,7 @@ class ReSTXRayNode:
         res = self.make_request("/", timeout=30)
         return res.get('core_version')
 
-    def start(self, config: XRayConfig):
+    def start(self, config: XRayConfig, timeout: int = 60):
         if not self.connected:
             self.connect()
 
@@ -187,7 +187,7 @@ class ReSTXRayNode:
         json_config = config.to_json()
 
         try:
-            res = self.make_request("/start", timeout=60, config=json_config)
+            res = self.make_request("/start", timeout=timeout, config=json_config)
         except NodeAPIError as exc:
             if "Xray is started already" in str(exc.detail):
                 res = None

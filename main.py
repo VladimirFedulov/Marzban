@@ -11,7 +11,7 @@ from cryptography.hazmat.backends import default_backend
 
 from app import app, logger
 from config import (DEBUG, UVICORN_HOST, UVICORN_PORT, UVICORN_SSL_CERTFILE,
-                    UVICORN_SSL_KEYFILE, UVICORN_UDS)
+                    UVICORN_SSL_KEYFILE, UVICORN_UDS, UVICORN_WORKERS)
 
 
 def check_and_modify_ip(ip_address: str) -> str:
@@ -131,7 +131,7 @@ Then, navigate to {click.style(f'http://{ip}:{UVICORN_PORT}', bold=True)} on you
         uvicorn.run(
             "main:app",
             **bind_args,
-            workers=1,
+            workers=UVICORN_WORKERS,
             reload=DEBUG,
             log_level=logging.DEBUG if DEBUG else logging.INFO
         )

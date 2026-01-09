@@ -1,5 +1,7 @@
 import logging
 
+from apscheduler.executors.pool import ProcessPoolExecutor
+from apscheduler.jobstores.redis import RedisJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
@@ -8,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 
-from config import ALLOWED_ORIGINS, DOCS, XRAY_SUBSCRIPTION_PATH
+from config import ALLOWED_ORIGINS, DOCS, REDIS_URL, XRAY_SUBSCRIPTION_PATH
 
 __version__ = "0.8.5.4"
 
@@ -19,9 +21,11 @@ app = FastAPI(
     openapi_url="/openapi.json" if DOCS else None,
 )
 
-scheduler = BackgroundScheduler(
-    {"apscheduler.job_defaults.max_instances": 20}, timezone="UTC"
-)
+jobstores = {"default": RedisJobStore(url=REDIS_URL)}
+executors = {"default": {"type": "threadpool", "max_workers": 20}, "processpool": ProcessPoolExecutor(max_workers=5)}
+job_defaults = {"coalesce": False, "max_instances": 3}
+scheduler = BackgroundScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone="UTC")
+
 logger = logging.getLogger("uvicorn.error")
 
 app.add_middleware(
