@@ -152,6 +152,8 @@ def record_user_usages():
 
     for node_id, node in xray.operations.get_healthy_nodes():
         try:
+            if not node.connected:
+                continue
             api_instances[node_id] = node.api
             usage_coefficient[
                 node_id] = node.usage_coefficient  # fetch the usage coefficient
@@ -224,6 +226,8 @@ def record_node_usages():
     api_instances = {None: xray.api}
     for node_id, node in xray.operations.get_healthy_nodes():
         try:
+            if not node.connected:
+                continue
             api_instances[node_id] = node.api
         except Exception as exc:
             logger.warning(f"Skipping node {node_id} outbound usage collection: {exc}")
