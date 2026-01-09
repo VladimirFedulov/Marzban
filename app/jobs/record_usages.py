@@ -9,7 +9,7 @@ from sqlalchemy import and_, bindparam, insert, select, update
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.dml import Insert
 
-from app import scheduler, xray
+from app import logger, scheduler, xray
 from app.db import GetDB
 from app.db.models import Admin, NodeUsage, NodeUserUsage, System, User
 from config import (
@@ -150,11 +150,13 @@ def record_user_usages():
         None: 1
     }  # default usage coefficient for the main api instance
 
-    for node_id, node in list(xray.nodes.items()):
-        if node.connected and node.started:
+    for node_id, node in xray.operations.get_healthy_nodes():
+        try:
             api_instances[node_id] = node.api
             usage_coefficient[
                 node_id] = node.usage_coefficient  # fetch the usage coefficient
+        except Exception as exc:
+            logger.warning(f"Skipping node {node_id} usage collection: {exc}")
 
     with ThreadPoolExecutor(
             max_workers=JOB_RECORD_USER_USAGES_WORKERS) as executor:
@@ -220,9 +222,11 @@ def record_user_usages():
 
 def record_node_usages():
     api_instances = {None: xray.api}
-    for node_id, node in list(xray.nodes.items()):
-        if node.connected and node.started:
+    for node_id, node in xray.operations.get_healthy_nodes():
+        try:
             api_instances[node_id] = node.api
+        except Exception as exc:
+            logger.warning(f"Skipping node {node_id} outbound usage collection: {exc}")
 
     with ThreadPoolExecutor(
             max_workers=JOB_RECORD_USER_USAGES_WORKERS) as executor:

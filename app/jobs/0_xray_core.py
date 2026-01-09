@@ -19,23 +19,25 @@ def core_health_check():
 
     # nodes' core
     for node_id, node in list(xray.nodes.items()):
+        error_message = None
         try:
             node_connected = node.connected
         except Exception as exc:
             node_connected = False
-            xray.operations.mark_node_error(node_id, str(exc))
+            error_message = str(exc)
 
         if node_connected:
             try:
                 assert node.started
                 node.api.get_sys_stats(timeout=2)
+                xray.operations.mark_node_connected(node_id)
             except (ConnectionError, xray_exc.XrayError, AssertionError) as exc:
                 xray.operations.mark_node_error(node_id, str(exc))
                 if not config:
                     config = xray.config.include_db_users()
                 xray.operations.restart_node(node_id, config)
         else:
-            xray.operations.mark_node_error(node_id, "Node ping failed")
+            xray.operations.mark_node_error(node_id, error_message or "Node ping failed")
             if not config:
                 config = xray.config.include_db_users()
             xray.operations.connect_node(node_id, config)
