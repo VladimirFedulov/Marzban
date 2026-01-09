@@ -4,7 +4,7 @@ import traceback
 from app import app, logger, scheduler, xray
 from app.db import GetDB, crud
 from app.models.node import NodeStatus
-from config import JOB_CORE_HEALTH_CHECK_INTERVAL
+from config import JOB_CORE_HEALTH_CHECK_INTERVAL, JOB_CORE_HEALTH_CHECK_MAX_INSTANCES
 from xray_api import exc as xray_exc
 
 
@@ -19,16 +19,23 @@ def core_health_check():
 
     # nodes' core
     for node_id, node in list(xray.nodes.items()):
-        if node.connected:
+        try:
+            node_connected = node.connected
+        except Exception as exc:
+            node_connected = False
+            xray.operations.mark_node_error(node_id, str(exc))
+
+        if node_connected:
             try:
                 assert node.started
                 node.api.get_sys_stats(timeout=2)
-            except (ConnectionError, xray_exc.XrayError, AssertionError):
+            except (ConnectionError, xray_exc.XrayError, AssertionError) as exc:
+                xray.operations.mark_node_error(node_id, str(exc))
                 if not config:
                     config = xray.config.include_db_users()
                 xray.operations.restart_node(node_id, config)
-
-        if not node.connected:
+        else:
+            xray.operations.mark_node_error(node_id, "Node ping failed")
             if not config:
                 config = xray.config.include_db_users()
             xray.operations.connect_node(node_id, config)
@@ -62,7 +69,8 @@ def start_core():
 
     scheduler.add_job(core_health_check, 'interval',
                       seconds=JOB_CORE_HEALTH_CHECK_INTERVAL,
-                      coalesce=True, max_instances=1)
+                      coalesce=True,
+                      max_instances=JOB_CORE_HEALTH_CHECK_MAX_INSTANCES)
 
 
 @app.on_event("shutdown")
