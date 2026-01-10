@@ -2,6 +2,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from operator import attrgetter
+import time
 from typing import Union
 
 from pymysql.err import OperationalError
@@ -30,6 +31,7 @@ def safe_execute(db: Session, stmt, params=None):
             stmt = stmt.prefix_with('IGNORE')
 
         tries = 0
+        max_retries = 5
         done = False
         while not done:
             try:
@@ -37,9 +39,10 @@ def safe_execute(db: Session, stmt, params=None):
                 db.commit()
                 done = True
             except OperationalError as err:
-                if err.args[0] == 1213 and tries < 3:  # Deadlock
+                if err.args[0] == 1213 and tries < max_retries:  # Deadlock
                     db.rollback()
                     tries += 1
+                    time.sleep(0.1 * (2 ** (tries - 1)))
                     continue
                 raise err
 
