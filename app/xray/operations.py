@@ -255,7 +255,7 @@ def mark_node_error(node_id: int, message: str):
 
 
 global _connecting_nodes
-_connecting_nodes = {}
+_connecting_nodes: Dict[int, float] = {}
 _connection_lock = threading.Lock()
 _connection_backoff = {}
 _node_health: Dict[int, Dict[str, float]] = {}
@@ -308,6 +308,25 @@ def _clear_connection_backoff(node_id: int):
         _connection_backoff.pop(node_id, None)
 
 
+def clear_stale_connecting_nodes(max_age: float) -> List[int]:
+    now = time.monotonic()
+    stale_nodes: List[int] = []
+    with _connection_lock:
+        for node_id, started_at in list(_connecting_nodes.items()):
+            if now - started_at < max_age:
+                continue
+            _connecting_nodes.pop(node_id, None)
+            stale_nodes.append(node_id)
+
+    for node_id in stale_nodes:
+        _record_connection_failure(node_id)
+        logger.warning(
+            "Clearing stale connecting state for node %s after %.0fs", node_id, max_age
+        )
+
+    return stale_nodes
+
+
 @threaded_function
 def connect_node(node_id, config=None):
     global _connecting_nodes
@@ -332,7 +351,7 @@ def connect_node(node_id, config=None):
 
     try:
         with _connection_lock:
-            _connecting_nodes[node_id] = True
+            _connecting_nodes[node_id] = time.monotonic()
 
         _change_node_status(node_id, NodeStatus.connecting)
         logger.info(f"Connecting to \"{dbnode.name}\" node")
@@ -407,6 +426,7 @@ __all__ = [
     "remove_user",
     "add_node",
     "remove_node",
+    "clear_stale_connecting_nodes",
     "connect_node",
     "mark_node_error",
     "mark_node_connected",

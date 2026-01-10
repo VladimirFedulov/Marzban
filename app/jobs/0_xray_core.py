@@ -4,12 +4,22 @@ import traceback
 from app import app, logger, scheduler, xray
 from app.db import GetDB, crud
 from app.models.node import NodeStatus
-from config import JOB_CORE_HEALTH_CHECK_INTERVAL, JOB_CORE_HEALTH_CHECK_MAX_INSTANCES
+from config import (
+    JOB_CORE_HEALTH_CHECK_INTERVAL,
+    JOB_CORE_HEALTH_CHECK_MAX_INSTANCES,
+    NODE_CONNECTING_TIMEOUT,
+)
 from xray_api import exc as xray_exc
 
 
 def core_health_check():
     config = None
+    stale_nodes = xray.operations.clear_stale_connecting_nodes(NODE_CONNECTING_TIMEOUT)
+    for node_id in stale_nodes:
+        xray.operations.mark_node_error(
+            node_id,
+            f"Connection attempt timed out after {NODE_CONNECTING_TIMEOUT}s",
+        )
 
     # main core
     if not xray.core.started:
