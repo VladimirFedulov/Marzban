@@ -153,6 +153,10 @@ SUB_UPDATE_INTERVAL = config("SUB_UPDATE_INTERVAL", default="12")
 SUB_SUPPORT_URL = config("SUB_SUPPORT_URL", default="https://t.me/")
 SUB_PROFILE_TITLE = config("SUB_PROFILE_TITLE", default="Subscription")
 
+# HWID device limit
+HWID_DEVICE_LIMIT_ENABLED = config("HWID_DEVICE_LIMIT_ENABLED", cast=bool, default=False)
+HWID_FALLBACK_DEVICE_LIMIT = config("HWID_FALLBACK_DEVICE_LIMIT", cast=int, default=1)
+
 # discord webhook log
 DISCORD_WEBHOOK_URL = config("DISCORD_WEBHOOK_URL", default="")
 

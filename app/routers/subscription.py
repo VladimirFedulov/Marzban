@@ -1,10 +1,11 @@
 import re
 from distutils.version import LooseVersion
 
-from fastapi import APIRouter, Depends, Header, Path, Request, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Path, Request, Response
 from fastapi.responses import HTMLResponse
 
 from app.db import Session, crud, get_db
+from app.db.models import User
 from app.dependencies import get_validated_sub, validate_dates
 from app.models.user import SubscriptionUserResponse, UserResponse
 from app.subscription.share import encode_title, generate_subscription
@@ -21,6 +22,8 @@ from config import (
     USE_CUSTOM_JSON_FOR_V2RAYN,
     USE_CUSTOM_JSON_FOR_V2RAYNG,
     XRAY_SUBSCRIPTION_PATH,
+    HWID_DEVICE_LIMIT_ENABLED,
+    HWID_FALLBACK_DEVICE_LIMIT,
 )
 
 client_config = {
@@ -34,6 +37,49 @@ client_config = {
 }
 
 router = APIRouter(tags=['Subscription'], prefix=f'/{XRAY_SUBSCRIPTION_PATH}')
+
+
+def enforce_hwid_device_limit(
+    db: Session,
+    dbuser: User,
+    request: Request,
+    user_agent: str,
+) -> None:
+    enabled = (
+        dbuser.hwid_device_limit_enabled
+        if dbuser.hwid_device_limit_enabled is not None
+        else HWID_DEVICE_LIMIT_ENABLED
+    )
+    if not enabled:
+        return
+
+    hwid = request.headers.get("x-hwid")
+    if not hwid:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    limit = (
+        dbuser.hwid_device_limit
+        if dbuser.hwid_device_limit is not None
+        else HWID_FALLBACK_DEVICE_LIMIT
+    )
+    if limit <= 0:
+        return
+
+    existing_device = crud.get_user_hwid_device(db, dbuser, hwid)
+    if not existing_device:
+        devices_count = crud.count_user_hwid_devices(db, dbuser)
+        if devices_count >= limit:
+            raise HTTPException(status_code=404, detail="Not Found")
+
+    crud.upsert_user_hwid_device(
+        db=db,
+        dbuser=dbuser,
+        hwid=hwid,
+        device_os=request.headers.get("x-device-os"),
+        device_model=request.headers.get("x-device-model"),
+        device_os_version=request.headers.get("x-ver-os"),
+        user_agent=user_agent,
+    )
 
 
 def get_subscription_user_info(user: UserResponse) -> dict:
@@ -55,16 +101,18 @@ def user_subscription(
     user_agent: str = Header(default="")
 ):
     """Provides a subscription link based on the user agent (Clash, V2Ray, etc.)."""
-    user: UserResponse = UserResponse.model_validate(dbuser)
-
     accept_header = request.headers.get("Accept", "")
     if "text/html" in accept_header:
+        user: UserResponse = UserResponse.model_validate(dbuser)
         return HTMLResponse(
             render_template(
                 SUBSCRIPTION_PAGE_TEMPLATE,
                 {"user": user}
             )
         )
+
+    user: UserResponse = UserResponse.model_validate(dbuser)
+    enforce_hwid_device_limit(db, dbuser, request, user_agent)
 
     crud.update_user_sub(db, dbuser, user_agent)
     response_headers = {
@@ -157,20 +205,27 @@ def user_subscription(
 
 @router.get("/{token}/info", response_model=SubscriptionUserResponse)
 def user_subscription_info(
+    request: Request,
+    db: Session = Depends(get_db),
     dbuser: UserResponse = Depends(get_validated_sub),
+    user_agent: str = Header(default=""),
 ):
     """Retrieves detailed information about the user's subscription."""
+    enforce_hwid_device_limit(db, dbuser, request, user_agent)
     return dbuser
 
 
 @router.get("/{token}/usage")
 def user_get_usage(
+    request: Request,
     dbuser: UserResponse = Depends(get_validated_sub),
     start: str = "",
     end: str = "",
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_agent: str = Header(default=""),
 ):
     """Fetches the usage statistics for the user within a specified date range."""
+    enforce_hwid_device_limit(db, dbuser, request, user_agent)
     start, end = validate_dates(start, end)
 
     usages = crud.get_user_usages(db, dbuser, start, end)
@@ -188,6 +243,7 @@ def user_subscription_with_client_type(
 ):
     """Provides a subscription link based on the specified client type (e.g., Clash, V2Ray)."""
     user: UserResponse = UserResponse.model_validate(dbuser)
+    enforce_hwid_device_limit(db, dbuser, request, user_agent)
 
     response_headers = {
         "content-disposition": f'attachment; filename="{user.username}"',

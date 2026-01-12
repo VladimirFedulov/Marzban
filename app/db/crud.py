@@ -26,6 +26,7 @@ from app.db.models import (
     ProxyTypes,
     System,
     User,
+    UserHwidDevice,
     UserTemplate,
     UserUsageResetLogs,
 )
@@ -506,6 +507,12 @@ def update_user(db: Session, dbuser: User, modify: UserModify) -> User:
     if modify.note is not None:
         dbuser.note = modify.note or None
 
+    if modify.hwid_device_limit is not None:
+        dbuser.hwid_device_limit = modify.hwid_device_limit
+
+    if modify.hwid_device_limit_enabled is not None:
+        dbuser.hwid_device_limit_enabled = modify.hwid_device_limit_enabled
+
     if modify.data_limit_reset_strategy is not None:
         dbuser.data_limit_reset_strategy = modify.data_limit_reset_strategy.value
 
@@ -644,6 +651,69 @@ def update_user_sub(db: Session, dbuser: User, user_agent: str) -> User:
     db.commit()
     db.refresh(dbuser)
     return dbuser
+
+
+def get_user_hwid_device(db: Session, dbuser: User, hwid: str) -> Optional[UserHwidDevice]:
+    return db.query(UserHwidDevice).filter(
+        UserHwidDevice.user_id == dbuser.id,
+        UserHwidDevice.hwid == hwid,
+    ).first()
+
+
+def get_user_hwid_devices(db: Session, dbuser: User) -> List[UserHwidDevice]:
+    return db.query(UserHwidDevice).filter(UserHwidDevice.user_id == dbuser.id).all()
+
+
+def count_user_hwid_devices(db: Session, dbuser: User) -> int:
+    return db.query(UserHwidDevice).filter(UserHwidDevice.user_id == dbuser.id).count()
+
+
+def upsert_user_hwid_device(
+    db: Session,
+    dbuser: User,
+    hwid: str,
+    device_os: Optional[str],
+    device_model: Optional[str],
+    device_os_version: Optional[str],
+    user_agent: Optional[str],
+) -> UserHwidDevice:
+    device = get_user_hwid_device(db, dbuser, hwid)
+    if device:
+        device.device_os = device_os
+        device.device_model = device_model
+        device.device_os_version = device_os_version
+        device.user_agent = user_agent
+        device.last_seen_at = datetime.utcnow()
+        db.add(device)
+        db.commit()
+        db.refresh(device)
+        return device
+
+    device = UserHwidDevice(
+        user=dbuser,
+        hwid=hwid,
+        device_os=device_os,
+        device_model=device_model,
+        device_os_version=device_os_version,
+        user_agent=user_agent,
+        last_seen_at=datetime.utcnow(),
+    )
+    db.add(device)
+    db.commit()
+    db.refresh(device)
+    return device
+
+
+def delete_user_hwid_device(db: Session, dbuser: User, device_id: int) -> bool:
+    device = db.query(UserHwidDevice).filter(
+        UserHwidDevice.user_id == dbuser.id,
+        UserHwidDevice.id == device_id,
+    ).first()
+    if not device:
+        return False
+    db.delete(device)
+    db.commit()
+    return True
 
 
 def reset_all_users_data_usage(db: Session, admin: Optional[Admin] = None):

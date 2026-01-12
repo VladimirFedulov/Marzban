@@ -69,6 +69,8 @@ class User(BaseModel):
     note: Optional[str] = Field(None, nullable=True)
     sub_updated_at: Optional[datetime] = Field(None, nullable=True)
     sub_last_user_agent: Optional[str] = Field(None, nullable=True)
+    hwid_device_limit: Optional[int] = Field(None, ge=0, nullable=True)
+    hwid_device_limit_enabled: Optional[bool] = Field(None, nullable=True)
     online_at: Optional[datetime] = Field(None, nullable=True)
     on_hold_expire_duration: Optional[int] = Field(None, nullable=True)
     on_hold_timeout: Optional[Union[datetime, None]] = Field(None, nullable=True)
@@ -334,6 +336,22 @@ class SubscriptionUserResponse(UserResponse):
     inbounds: Dict[ProxyTypes, List[str]] | None = Field(None, exclude=True)
     auto_delete_in_days: int | None = Field(None, exclude=True)
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserHwidDeviceResponse(BaseModel):
+    id: int
+    hwid: str
+    device_os: Optional[str] = None
+    device_model: Optional[str] = None
+    device_os_version: Optional[str] = None
+    user_agent: Optional[str] = None
+    created_at: datetime
+    last_seen_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserHwidDevicesResponse(BaseModel):
+    devices: List[UserHwidDeviceResponse]
 
 
 class UsersResponse(BaseModel):
