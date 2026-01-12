@@ -291,6 +291,9 @@ export const UserDialog: FC<UserDialogProps> = () => {
   const [usageFilter, setUsageFilter] = useState("1m");
   const [hwidDevicesCount, setHwidDevicesCount] = useState<number | null>(null);
   const [hwidDevices, setHwidDevices] = useState<HwidDevice[] | null>(null);
+  const [hwidDeviceDeletingId, setHwidDeviceDeletingId] = useState<number | null>(
+    null
+  );
   const fetchUsageWithFilter = (query: FilterUsageType) => {
     fetchUserUsage(editingUser!, query).then((data: any) => {
       const labels = [];
@@ -403,6 +406,38 @@ export const UserDialog: FC<UserDialogProps> = () => {
 
   const handleRevokeSubscription = () => {
     useDashboard.setState({ revokeSubscriptionUser: editingUser });
+  };
+
+  const handleDeleteHwidDevice = (deviceId: number) => {
+    if (!editingUser) return;
+    setHwidDeviceDeletingId(deviceId);
+    fetch(`/user/${editingUser.username}/hwid-devices/${deviceId}`, {
+      method: "DELETE",
+    })
+      .then((data: { devices?: HwidDevice[] }) => {
+        const devices = data?.devices ?? [];
+        setHwidDevices(devices);
+        setHwidDevicesCount(devices.length);
+        toast({
+          title: t("userDialog.hwidDeviceDeleted"),
+          status: "success",
+          isClosable: true,
+          position: "top",
+          duration: 3000,
+        });
+      })
+      .catch(() => {
+        toast({
+          title: t("userDialog.hwidDeviceDeleteFailed"),
+          status: "error",
+          isClosable: true,
+          position: "top",
+          duration: 3000,
+        });
+      })
+      .finally(() => {
+        setHwidDeviceDeletingId(null);
+      });
   };
 
   const disabled = loading;
@@ -890,6 +925,9 @@ export const UserDialog: FC<UserDialogProps> = () => {
                         })}
                       </FormHelperText>
                     )}
+                    <FormHelperText>
+                      {t("userDialog.hwidDeviceLimitModeHelp")}
+                    </FormHelperText>
                   </FormControl>
 
                   <FormControl>
@@ -941,6 +979,9 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                 <Th>{t("userDialog.hwidDeviceColumn")}</Th>
                                 <Th>{t("userDialog.hwidDeviceInfo")}</Th>
                                 <Th>{t("userDialog.hwidDeviceLastSeen")}</Th>
+                                <Th textAlign="right">
+                                  {t("userDialog.hwidDeviceActions")}
+                                </Th>
                               </Tr>
                             </Thead>
                             <Tbody>
@@ -963,9 +1004,26 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                     <Td minW="170px">
                                       {dayjs(device.last_seen_at).isValid()
                                         ? dayjs(device.last_seen_at).format(
-                                            "YYYY-MM-DD HH:mm"
+                                            "HH:mm DD.MM.YYYY"
                                           )
                                         : "-"}
+                                    </Td>
+                                    <Td textAlign="right">
+                                      <Tooltip label={t("delete")}>
+                                        <IconButton
+                                          aria-label={t("delete")}
+                                          size="xs"
+                                          variant="ghost"
+                                          isLoading={
+                                            hwidDeviceDeletingId === device.id
+                                          }
+                                          onClick={() =>
+                                            handleDeleteHwidDevice(device.id)
+                                          }
+                                        >
+                                          <DeleteIcon />
+                                        </IconButton>
+                                      </Tooltip>
                                     </Td>
                                   </Tr>
                                 );
