@@ -154,8 +154,28 @@ SUB_SUPPORT_URL = config("SUB_SUPPORT_URL", default="https://t.me/")
 SUB_PROFILE_TITLE = config("SUB_PROFILE_TITLE", default="Subscription")
 
 # HWID device limit
-HWID_DEVICE_LIMIT_ENABLED = config("HWID_DEVICE_LIMIT_ENABLED", cast=bool, default=False)
+def _cast_hwid_device_limit_mode(value):
+    if value is None:
+        return "disabled"
+    if isinstance(value, bool):
+        return "enabled" if value else "disabled"
+    normalized = str(value).strip().lower()
+    if normalized in {"enabled", "enable", "true", "1", "yes", "on"}:
+        return "enabled"
+    if normalized in {"disabled", "disable", "false", "0", "no", "off"}:
+        return "disabled"
+    if normalized in {"logging", "log"}:
+        return "logging"
+    raise ValueError(
+        "HWID_DEVICE_LIMIT_ENABLED must be enabled/disabled/logging or a boolean-like value"
+    )
+
+
+HWID_DEVICE_LIMIT_ENABLED = config(
+    "HWID_DEVICE_LIMIT_ENABLED", cast=_cast_hwid_device_limit_mode, default="disabled"
+)
 HWID_FALLBACK_DEVICE_LIMIT = config("HWID_FALLBACK_DEVICE_LIMIT", cast=int, default=1)
+HWID_DEVICE_RETENTION_DAYS = config("HWID_DEVICE_RETENTION_DAYS", cast=int, default=-1)
 
 # discord webhook log
 DISCORD_WEBHOOK_URL = config("DISCORD_WEBHOOK_URL", default="")
@@ -177,3 +197,4 @@ JOB_RECORD_REALTIME_BANDWIDTH_MAX_INSTANCES = config(
     cast=int,
     default=1
 )
+JOB_HWID_DEVICE_CLEANUP_INTERVAL = config("JOB_HWID_DEVICE_CLEANUP_INTERVAL", cast=int, default=3600)

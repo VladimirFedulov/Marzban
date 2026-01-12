@@ -19,7 +19,7 @@ from app.models.user import (
     UserUsagesResponse,
 )
 from app.utils import report, responses
-from config import SUDOERS
+from config import HWID_DEVICE_RETENTION_DAYS, SUDOERS
 
 router = APIRouter(tags=["User"], prefix="/api", responses={401: responses._401})
 
@@ -212,6 +212,11 @@ def list_user_hwid_devices(
     db: Session = Depends(get_db),
     dbuser: UserResponse = Depends(get_validated_user),
 ):
+    crud.delete_expired_user_hwid_devices(
+        db=db,
+        dbuser=dbuser,
+        retention_days=HWID_DEVICE_RETENTION_DAYS,
+    )
     devices = crud.get_user_hwid_devices(db, dbuser)
     return {"devices": devices}
 
