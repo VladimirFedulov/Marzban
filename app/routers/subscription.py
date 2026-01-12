@@ -24,6 +24,7 @@ from config import (
     XRAY_SUBSCRIPTION_PATH,
     HWID_DEVICE_LIMIT_ENABLED,
     HWID_FALLBACK_DEVICE_LIMIT,
+    HWID_DEVICE_RETENTION_DAYS,
 )
 
 client_config = {
@@ -45,17 +46,39 @@ def enforce_hwid_device_limit(
     request: Request,
     user_agent: str,
 ) -> None:
-    enabled = (
-        dbuser.hwid_device_limit_enabled
+    mode = (
+        "enabled"
+        if dbuser.hwid_device_limit_enabled
+        else "disabled"
         if dbuser.hwid_device_limit_enabled is not None
         else HWID_DEVICE_LIMIT_ENABLED
     )
-    if not enabled:
+    if mode == "disabled":
         return
 
     hwid = request.headers.get("x-hwid")
     if not hwid:
+        if mode == "logging":
+            return
         raise HTTPException(status_code=404, detail="Not Found")
+
+    crud.delete_expired_user_hwid_devices(
+        db=db,
+        dbuser=dbuser,
+        retention_days=HWID_DEVICE_RETENTION_DAYS,
+    )
+
+    if mode == "logging":
+        crud.upsert_user_hwid_device(
+            db=db,
+            dbuser=dbuser,
+            hwid=hwid,
+            device_os=request.headers.get("x-device-os"),
+            device_model=request.headers.get("x-device-model"),
+            device_os_version=request.headers.get("x-ver-os"),
+            user_agent=user_agent,
+        )
+        return
 
     limit = (
         dbuser.hwid_device_limit

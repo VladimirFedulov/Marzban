@@ -664,8 +664,37 @@ def get_user_hwid_devices(db: Session, dbuser: User) -> List[UserHwidDevice]:
     return db.query(UserHwidDevice).filter(UserHwidDevice.user_id == dbuser.id).all()
 
 
+def delete_expired_user_hwid_devices(
+    db: Session,
+    dbuser: User,
+    retention_days: int,
+) -> int:
+    if retention_days < 0:
+        return 0
+    cutoff = datetime.utcnow() - timedelta(days=retention_days)
+    deleted = db.query(UserHwidDevice).filter(
+        UserHwidDevice.user_id == dbuser.id,
+        UserHwidDevice.last_seen_at < cutoff,
+    ).delete(synchronize_session=False)
+    if deleted:
+        db.commit()
+    return deleted
+
+
 def count_user_hwid_devices(db: Session, dbuser: User) -> int:
     return db.query(UserHwidDevice).filter(UserHwidDevice.user_id == dbuser.id).count()
+
+
+def delete_expired_hwid_devices(db: Session, retention_days: int) -> int:
+    if retention_days < 0:
+        return 0
+    cutoff = datetime.utcnow() - timedelta(days=retention_days)
+    deleted = db.query(UserHwidDevice).filter(
+        UserHwidDevice.last_seen_at < cutoff,
+    ).delete(synchronize_session=False)
+    if deleted:
+        db.commit()
+    return deleted
 
 
 def upsert_user_hwid_device(

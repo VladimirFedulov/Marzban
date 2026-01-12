@@ -22,6 +22,7 @@ import {
   ModalOverlay,
   Select,
   Table,
+  TableContainer,
   Tbody,
   Td,
   Text,
@@ -629,140 +630,6 @@ export const UserDialog: FC<UserDialogProps> = () => {
                       </Collapse>
 
                       <FormControl mb={"10px"}>
-                        <FormLabel>{t("userDialog.hwidDeviceLimitEnabled")}</FormLabel>
-                        <Controller
-                          control={form.control}
-                          name="hwid_device_limit_enabled"
-                          render={({ field }) => {
-                            const value =
-                              field.value === null
-                                ? "default"
-                                : field.value
-                                  ? "enabled"
-                                  : "disabled";
-                            return (
-                              <Select
-                                size="sm"
-                                value={value}
-                                disabled={disabled}
-                                bg={disabled ? "gray.100" : "transparent"}
-                                _dark={{
-                                  bg: disabled ? "gray.600" : "transparent",
-                                }}
-                                sx={{
-                                  option: {
-                                    backgroundColor:
-                                      colorMode === "dark" ? "#222C3B" : "white",
-                                  },
-                                }}
-                                onChange={(event) => {
-                                  const nextValue = event.target.value;
-                                  field.onChange(
-                                    nextValue === "default"
-                                      ? null
-                                      : nextValue === "enabled"
-                                  );
-                                }}
-                              >
-                                <option value="default">
-                                  {t("userDialog.hwidDeviceLimitModeGlobal")}
-                                </option>
-                                <option value="enabled">
-                                  {t("userDialog.hwidDeviceLimitModeEnabled")}
-                                </option>
-                                <option value="disabled">
-                                  {t("userDialog.hwidDeviceLimitModeDisabled")}
-                                </option>
-                              </Select>
-                            );
-                          }}
-                        />
-                        {hwidDevicesCount !== null && (
-                          <FormHelperText>
-                            {t("userDialog.hwidDeviceCount", {
-                              count: hwidDevicesCount,
-                            })}
-                          </FormHelperText>
-                        )}
-                      </FormControl>
-
-                      <FormControl mb={"10px"}>
-                        <FormLabel>{t("userDialog.hwidDeviceLimit")}</FormLabel>
-                        <Controller
-                          control={form.control}
-                          name="hwid_device_limit"
-                          render={({ field }) => {
-                            return (
-                              <Input
-                                type="number"
-                                size="sm"
-                                borderRadius="6px"
-                                onChange={field.onChange}
-                                disabled={disabled || hwidDeviceLimitEnabled === false}
-                                value={
-                                  field.value === null || field.value === undefined
-                                    ? ""
-                                    : String(field.value)
-                                }
-                              />
-                            );
-                          }}
-                        />
-                        <FormHelperText>
-                          {t("userDialog.hwidDeviceLimitHelp")}
-                        </FormHelperText>
-                      </FormControl>
-
-                      {hwidDevices && (
-                        <Box mb={"10px"}>
-                          <Text fontWeight="medium" mb={2}>
-                            {t("userDialog.hwidDevicesTitle")}
-                          </Text>
-                          {hwidDevices.length === 0 ? (
-                            <FormHelperText>
-                              {t("userDialog.hwidDevicesEmpty")}
-                            </FormHelperText>
-                          ) : (
-                            <Table size="sm" variant="simple">
-                              <Thead>
-                                <Tr>
-                                  <Th>{t("userDialog.hwidDeviceColumn")}</Th>
-                                  <Th>{t("userDialog.hwidDeviceInfo")}</Th>
-                                  <Th>{t("userDialog.hwidDeviceLastSeen")}</Th>
-                                </Tr>
-                              </Thead>
-                              <Tbody>
-                                {hwidDevices.map((device) => {
-                                  const deviceInfo = [
-                                    device.device_os,
-                                    device.device_model,
-                                    device.device_os_version,
-                                  ]
-                                    .filter(Boolean)
-                                    .join(" • ");
-                                  return (
-                                    <Tr key={device.id}>
-                                      <Td maxW="200px" wordBreak="break-all">
-                                        {device.hwid}
-                                      </Td>
-                                      <Td>{deviceInfo || "-"}</Td>
-                                      <Td>
-                                        {dayjs(device.last_seen_at).isValid()
-                                          ? dayjs(device.last_seen_at).format(
-                                              "YYYY-MM-DD HH:mm"
-                                            )
-                                          : "-"}
-                                      </Td>
-                                    </Tr>
-                                  );
-                                })}
-                              </Tbody>
-                            </Table>
-                          )}
-                        </Box>
-                      )}
-
-                      <FormControl mb={"10px"}>
                         <FormLabel>
                           {isOnHold
                             ? t("userDialog.onHoldExpireDuration")
@@ -963,6 +830,154 @@ export const UserDialog: FC<UserDialogProps> = () => {
                   </GridItem>
                 )}
               </Grid>
+              <Box mt={4} w="full">
+                <VStack align="stretch" spacing={3}>
+                  <FormControl>
+                    <FormLabel>
+                      {t("userDialog.hwidDeviceLimitEnabled")}
+                    </FormLabel>
+                    <Controller
+                      control={form.control}
+                      name="hwid_device_limit_enabled"
+                      render={({ field }) => {
+                        const value =
+                          field.value === null
+                            ? "default"
+                            : field.value
+                              ? "enabled"
+                              : "disabled";
+                        return (
+                          <Select
+                            size="sm"
+                            value={value}
+                            disabled={disabled}
+                            bg={disabled ? "gray.100" : "transparent"}
+                            _dark={{
+                              bg: disabled ? "gray.600" : "transparent",
+                            }}
+                            sx={{
+                              option: {
+                                backgroundColor:
+                                  colorMode === "dark" ? "#222C3B" : "white",
+                              },
+                            }}
+                            onChange={(event) => {
+                              const nextValue = event.target.value;
+                              field.onChange(
+                                nextValue === "default"
+                                  ? null
+                                  : nextValue === "enabled"
+                              );
+                            }}
+                          >
+                            <option value="default">
+                              {t("userDialog.hwidDeviceLimitModeGlobal")}
+                            </option>
+                            <option value="enabled">
+                              {t("userDialog.hwidDeviceLimitModeEnabled")}
+                            </option>
+                            <option value="disabled">
+                              {t("userDialog.hwidDeviceLimitModeDisabled")}
+                            </option>
+                          </Select>
+                        );
+                      }}
+                    />
+                    {hwidDevicesCount !== null && (
+                      <FormHelperText>
+                        {t("userDialog.hwidDeviceCount", {
+                          count: hwidDevicesCount,
+                        })}
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>{t("userDialog.hwidDeviceLimit")}</FormLabel>
+                    <Controller
+                      control={form.control}
+                      name="hwid_device_limit"
+                      render={({ field }) => {
+                        return (
+                          <Input
+                            type="number"
+                            size="sm"
+                            borderRadius="6px"
+                            onChange={field.onChange}
+                            disabled={disabled || hwidDeviceLimitEnabled === false}
+                            value={
+                              field.value === null || field.value === undefined
+                                ? ""
+                                : String(field.value)
+                            }
+                          />
+                        );
+                      }}
+                    />
+                    <FormHelperText>
+                      {t("userDialog.hwidDeviceLimitHelp")}
+                    </FormHelperText>
+                  </FormControl>
+
+                  {hwidDevices && (
+                    <Box>
+                      <Text fontWeight="medium" mb={2}>
+                        {t("userDialog.hwidDevicesTitle")}
+                      </Text>
+                      {hwidDevices.length === 0 ? (
+                        <Text fontSize="sm" color="gray.500">
+                          {t("userDialog.hwidDevicesEmpty")}
+                        </Text>
+                      ) : (
+                        <TableContainer
+                          border="1px solid"
+                          borderColor="light-border"
+                          borderRadius="md"
+                          _dark={{ borderColor: "gray.600" }}
+                        >
+                          <Table size="sm" variant="simple">
+                            <Thead>
+                              <Tr>
+                                <Th>{t("userDialog.hwidDeviceColumn")}</Th>
+                                <Th>{t("userDialog.hwidDeviceInfo")}</Th>
+                                <Th>{t("userDialog.hwidDeviceLastSeen")}</Th>
+                              </Tr>
+                            </Thead>
+                            <Tbody>
+                              {hwidDevices.map((device) => {
+                                const deviceInfo = [
+                                  device.device_os,
+                                  device.device_model,
+                                  device.device_os_version,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" • ");
+                                return (
+                                  <Tr key={device.id}>
+                                    <Td minW="240px" wordBreak="break-all">
+                                      {device.hwid}
+                                    </Td>
+                                    <Td minW="220px">
+                                      {deviceInfo || "-"}
+                                    </Td>
+                                    <Td minW="170px">
+                                      {dayjs(device.last_seen_at).isValid()
+                                        ? dayjs(device.last_seen_at).format(
+                                            "YYYY-MM-DD HH:mm"
+                                          )
+                                        : "-"}
+                                    </Td>
+                                  </Tr>
+                                );
+                              })}
+                            </Tbody>
+                          </Table>
+                        </TableContainer>
+                      )}
+                    </Box>
+                  )}
+                </VStack>
+              </Box>
               {error && (
                 <Alert
                   mt="3"
