@@ -507,10 +507,10 @@ def update_user(db: Session, dbuser: User, modify: UserModify) -> User:
     if modify.note is not None:
         dbuser.note = modify.note or None
 
-    if modify.hwid_device_limit is not None:
+    if "hwid_device_limit" in modify.model_fields_set:
         dbuser.hwid_device_limit = modify.hwid_device_limit
 
-    if modify.hwid_device_limit_enabled is not None:
+    if "hwid_device_limit_enabled" in modify.model_fields_set:
         dbuser.hwid_device_limit_enabled = modify.hwid_device_limit_enabled
 
     if modify.data_limit_reset_strategy is not None:
