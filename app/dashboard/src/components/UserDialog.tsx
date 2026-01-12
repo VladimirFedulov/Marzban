@@ -699,7 +699,11 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                 borderRadius="6px"
                                 onChange={field.onChange}
                                 disabled={disabled || hwidDeviceLimitEnabled === false}
-                                value={field.value ?? ""}
+                                value={
+                                  field.value === null || field.value === undefined
+                                    ? ""
+                                    : String(field.value)
+                                }
                               />
                             );
                           }}
