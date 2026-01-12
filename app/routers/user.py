@@ -10,6 +10,7 @@ from app.dependencies import get_expired_users_list, get_validated_user, validat
 from app.models.admin import Admin
 from app.models.user import (
     UserCreate,
+    UserHwidDevicesResponse,
     UserModify,
     UserResponse,
     UsersResponse,
@@ -200,6 +201,36 @@ def revoke_user_subscription(
     logger.info(f'User "{dbuser.username}" subscription revoked')
 
     return user
+
+
+@router.get(
+    "/user/{username}/hwid-devices",
+    response_model=UserHwidDevicesResponse,
+    responses={403: responses._403, 404: responses._404},
+)
+def list_user_hwid_devices(
+    db: Session = Depends(get_db),
+    dbuser: UserResponse = Depends(get_validated_user),
+):
+    devices = crud.get_user_hwid_devices(db, dbuser)
+    return {"devices": devices}
+
+
+@router.delete(
+    "/user/{username}/hwid-devices/{device_id}",
+    response_model=UserHwidDevicesResponse,
+    responses={403: responses._403, 404: responses._404},
+)
+def delete_user_hwid_device(
+    device_id: int,
+    db: Session = Depends(get_db),
+    dbuser: UserResponse = Depends(get_validated_user),
+):
+    deleted = crud.delete_user_hwid_device(db, dbuser, device_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Device not found")
+    devices = crud.get_user_hwid_devices(db, dbuser)
+    return {"devices": devices}
 
 
 @router.get("/users", response_model=UsersResponse, responses={400: responses._400, 403: responses._403, 404: responses._404})

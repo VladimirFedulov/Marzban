@@ -81,6 +81,8 @@ class User(Base):
     sub_revoked_at = Column(DateTime, nullable=True, default=None)
     sub_updated_at = Column(DateTime, nullable=True, default=None)
     sub_last_user_agent = Column(String(512), nullable=True, default=None)
+    hwid_device_limit = Column(Integer, nullable=True, default=None)
+    hwid_device_limit_enabled = Column(Boolean, nullable=True, default=None)
     created_at = Column(DateTime, default=datetime.utcnow)
     note = Column(String(500), nullable=True, default=None)
     online_at = Column(DateTime, nullable=True, default=None)
@@ -100,6 +102,11 @@ class User(Base):
         uselist=False,
         back_populates="user",
         cascade="all, delete-orphan"
+    )
+    hwid_devices = relationship(
+        "UserHwidDevice",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
 
     @hybrid_property
@@ -196,6 +203,26 @@ class UserUsageResetLogs(Base):
     user = relationship("User", back_populates="usage_logs")
     used_traffic_at_reset = Column(BigInteger, nullable=False)
     reset_at = Column(DateTime, default=datetime.utcnow)
+
+
+class UserHwidDevice(Base):
+    __tablename__ = "user_hwid_devices"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    hwid = Column(String(128), nullable=False)
+    device_os = Column(String(64), nullable=True, default=None)
+    device_model = Column(String(128), nullable=True, default=None)
+    device_os_version = Column(String(64), nullable=True, default=None)
+    user_agent = Column(String(512), nullable=True, default=None)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_seen_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="hwid_devices")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "hwid", name="uq_user_hwid_devices_user_hwid"),
+    )
 
 
 class Proxy(Base):
