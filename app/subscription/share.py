@@ -24,7 +24,6 @@ from config import (
     LIMITED_STATUS_TEXT,
     ONHOLD_STATUS_TEXT,
     SUBSCRIPTION_CUSTOM_NOTES,
-    SUBSCRIPTION_CUSTOM_NOTES_ENABLED,
 )
 
 SERVER_IP = get_public_ip()
@@ -54,8 +53,6 @@ def generate_v2ray_links(proxies: dict, inbounds: dict, extra_data: dict, revers
 
 
 def get_status_notes(status: str | object) -> list[str]:
-    if not SUBSCRIPTION_CUSTOM_NOTES_ENABLED:
-        return []
     if hasattr(status, "value"):
         status = status.value
     return SUBSCRIPTION_CUSTOM_NOTES.get(status, [])
