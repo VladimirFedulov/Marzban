@@ -178,11 +178,6 @@ SUBSCRIPTION_CUSTOM_NOTES_DISABLED = config(
     default="",
     cast=_split_subscription_notes,
 )
-SUBSCRIPTION_CUSTOM_NOTES_ENABLED = config(
-    "SUBSCRIPTION_CUSTOM_NOTES_ENABLED",
-    default=False,
-    cast=bool,
-)
 SUBSCRIPTION_CUSTOM_NOTES = {
     "expired": SUBSCRIPTION_CUSTOM_NOTES_EXPIRED,
     "limited": SUBSCRIPTION_CUSTOM_NOTES_LIMITED,
