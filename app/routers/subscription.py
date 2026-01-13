@@ -1,7 +1,7 @@
 import re
 from distutils.version import LooseVersion
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Path, Request, Response
+from fastapi import APIRouter, Depends, Header, Path, Request, Response
 from fastapi.responses import HTMLResponse
 
 from app.db import Session, crud, get_db
@@ -45,7 +45,7 @@ def enforce_hwid_device_limit(
     dbuser: User,
     request: Request,
     user_agent: str,
-) -> None:
+) -> bool:
     mode = (
         "enabled"
         if dbuser.hwid_device_limit_enabled
@@ -54,13 +54,13 @@ def enforce_hwid_device_limit(
         else HWID_DEVICE_LIMIT_ENABLED
     )
     if mode == "disabled":
-        return
+        return True
 
     hwid = request.headers.get("x-hwid")
     if not hwid:
         if mode == "logging":
-            return
-        raise HTTPException(status_code=404, detail="Not Found")
+            return True
+        return False
 
     crud.delete_expired_user_hwid_devices(
         db=db,
@@ -78,7 +78,7 @@ def enforce_hwid_device_limit(
             device_os_version=request.headers.get("x-ver-os"),
             user_agent=user_agent,
         )
-        return
+        return True
 
     limit = (
         dbuser.hwid_device_limit
@@ -86,13 +86,13 @@ def enforce_hwid_device_limit(
         else HWID_FALLBACK_DEVICE_LIMIT
     )
     if limit <= 0:
-        return
+        return True
 
     existing_device = crud.get_user_hwid_device(db, dbuser, hwid)
     if not existing_device:
         devices_count = crud.count_user_hwid_devices(db, dbuser)
         if devices_count >= limit:
-            raise HTTPException(status_code=404, detail="Not Found")
+            return False
 
     crud.upsert_user_hwid_device(
         db=db,
@@ -103,6 +103,7 @@ def enforce_hwid_device_limit(
         device_os_version=request.headers.get("x-ver-os"),
         user_agent=user_agent,
     )
+    return True
 
 
 def get_subscription_user_info(user: UserResponse) -> dict:
@@ -135,7 +136,8 @@ def user_subscription(
         )
 
     user: UserResponse = UserResponse.model_validate(dbuser)
-    enforce_hwid_device_limit(db, dbuser, request, user_agent)
+    if not enforce_hwid_device_limit(db, dbuser, request, user_agent):
+        return Response(status_code=200, content="")
 
     crud.update_user_sub(db, dbuser, user_agent)
     response_headers = {
@@ -234,7 +236,8 @@ def user_subscription_info(
     user_agent: str = Header(default=""),
 ):
     """Retrieves detailed information about the user's subscription."""
-    enforce_hwid_device_limit(db, dbuser, request, user_agent)
+    if not enforce_hwid_device_limit(db, dbuser, request, user_agent):
+        return Response(status_code=200, content="")
     return dbuser
 
 
@@ -248,7 +251,8 @@ def user_get_usage(
     user_agent: str = Header(default=""),
 ):
     """Fetches the usage statistics for the user within a specified date range."""
-    enforce_hwid_device_limit(db, dbuser, request, user_agent)
+    if not enforce_hwid_device_limit(db, dbuser, request, user_agent):
+        return Response(status_code=200, content="")
     start, end = validate_dates(start, end)
 
     usages = crud.get_user_usages(db, dbuser, start, end)
@@ -266,7 +270,8 @@ def user_subscription_with_client_type(
 ):
     """Provides a subscription link based on the specified client type (e.g., Clash, V2Ray)."""
     user: UserResponse = UserResponse.model_validate(dbuser)
-    enforce_hwid_device_limit(db, dbuser, request, user_agent)
+    if not enforce_hwid_device_limit(db, dbuser, request, user_agent):
+        return Response(status_code=200, content="")
 
     response_headers = {
         "content-disposition": f'attachment; filename="{user.username}"',
