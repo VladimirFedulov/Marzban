@@ -40,7 +40,10 @@ def core_health_check():
             xray.operations.mark_node_error(node_id, error_message or "Node ping failed")
             if not config:
                 config = xray.config.include_db_users()
-            xray.operations.connect_node(node_id, config)
+            if xray.operations.should_force_reconnect(node_id):
+                xray.operations.force_reconnect_node(node_id, config)
+            else:
+                xray.operations.connect_node(node_id, config)
 
 
 @app.on_event("startup")
