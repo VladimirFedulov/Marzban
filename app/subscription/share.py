@@ -1,5 +1,4 @@
 import base64
-import math
 import random
 import secrets
 from collections import defaultdict
@@ -59,10 +58,23 @@ def is_default_host(host: dict) -> bool:
     )
 
 
-def generate_v2ray_links(proxies: dict, inbounds: dict, extra_data: dict, reverse: bool) -> list:
+def generate_v2ray_links(
+        proxies: dict,
+        inbounds: dict,
+        extra_data: dict,
+        reverse: bool,
+        custom_remarks: list[str] | None = None,
+) -> list:
     format_variables = setup_format_variables(extra_data)
     conf = V2rayShareLink()
-    return process_inbounds_and_tags(inbounds, proxies, format_variables, conf=conf, reverse=reverse)
+    return process_inbounds_and_tags(
+        inbounds,
+        proxies,
+        format_variables,
+        conf=conf,
+        reverse=reverse,
+        custom_remarks=custom_remarks,
+    )
 
 
 def get_status_notes(status: str | object) -> list[str]:
@@ -77,6 +89,7 @@ def generate_clash_subscription(
         extra_data: dict,
         reverse: bool,
         is_meta: bool = False,
+        custom_remarks: list[str] | None = None,
 ) -> str:
     if is_meta is True:
         conf = ClashMetaConfiguration()
@@ -85,7 +98,12 @@ def generate_clash_subscription(
 
     format_variables = setup_format_variables(extra_data)
     return process_inbounds_and_tags(
-        inbounds, proxies, format_variables, conf=conf, reverse=reverse
+        inbounds,
+        proxies,
+        format_variables,
+        conf=conf,
+        reverse=reverse,
+        custom_remarks=custom_remarks,
     )
 
 
@@ -94,12 +112,18 @@ def generate_singbox_subscription(
         inbounds: dict,
         extra_data: dict,
         reverse: bool,
+        custom_remarks: list[str] | None = None,
 ) -> str:
     conf = SingBoxConfiguration()
 
     format_variables = setup_format_variables(extra_data)
     return process_inbounds_and_tags(
-        inbounds, proxies, format_variables, conf=conf, reverse=reverse
+        inbounds,
+        proxies,
+        format_variables,
+        conf=conf,
+        reverse=reverse,
+        custom_remarks=custom_remarks,
     )
 
 
@@ -108,12 +132,18 @@ def generate_outline_subscription(
         inbounds: dict,
         extra_data: dict,
         reverse: bool,
+        custom_remarks: list[str] | None = None,
 ) -> str:
     conf = OutlineConfiguration()
 
     format_variables = setup_format_variables(extra_data)
     return process_inbounds_and_tags(
-        inbounds, proxies, format_variables, conf=conf, reverse=reverse
+        inbounds,
+        proxies,
+        format_variables,
+        conf=conf,
+        reverse=reverse,
+        custom_remarks=custom_remarks,
     )
 
 
@@ -122,100 +152,19 @@ def generate_v2ray_json_subscription(
         inbounds: dict,
         extra_data: dict,
         reverse: bool,
+        custom_remarks: list[str] | None = None,
 ) -> str:
     conf = V2rayJsonConfig()
 
     format_variables = setup_format_variables(extra_data)
     return process_inbounds_and_tags(
-        inbounds, proxies, format_variables, conf=conf, reverse=reverse
+        inbounds,
+        proxies,
+        format_variables,
+        conf=conf,
+        reverse=reverse,
+        custom_remarks=custom_remarks,
     )
-
-
-def build_fallback_inbound(port: int) -> dict:
-    return {
-        "protocol": "shadowsocks",
-        "network": "tcp",
-        "port": port,
-        "tls": "none",
-        "sni": "",
-        "host": "",
-        "path": "",
-        "header_type": "",
-        "alpn": "",
-        "fp": "",
-        "pbk": "",
-        "sid": "",
-        "spx": "",
-        "ais": "",
-        "fragment_setting": "",
-        "noise_setting": "",
-        "mux_enable": False,
-        "random_user_agent": False,
-        "scMaxEachPostBytes": None,
-        "scMaxConcurrentPosts": None,
-        "scMinPostsIntervalMs": None,
-        "xPaddingBytes": None,
-        "xmux": {},
-        "downloadSettings": {},
-        "mode": "auto",
-        "noGRPCHeader": None,
-        "heartbeatPeriod": 0,
-        "keepAlivePeriod": 0,
-        "scStreamUpServerSecs": None,
-    }
-
-
-def build_fallback_settings() -> dict:
-    return {
-        "password": "password",
-        "method": "aes-128-gcm",
-        "id": "00000000-0000-0000-0000-000000000000",
-        "flow": "",
-    }
-
-
-def format_custom_notes(notes: list[str], extra_data: dict) -> list[str]:
-    if not notes:
-        return []
-    format_variables = setup_format_variables(extra_data)
-    return [note.format_map(format_variables) for note in notes]
-
-
-def generate_custom_remarks_subscription(
-        config_format: Literal["v2ray", "clash-meta", "clash", "sing-box", "outline", "v2ray-json"],
-        status_notes: list[str],
-        extra_data: dict,
-        reverse: bool,
-) -> str:
-    formatted_notes = format_custom_notes(status_notes, extra_data)
-    if reverse:
-        formatted_notes = list(reversed(formatted_notes))
-
-    inbound = build_fallback_inbound(port=1)
-    settings = build_fallback_settings()
-
-    if config_format == "v2ray":
-        conf = V2rayShareLink()
-    elif config_format == "clash-meta":
-        conf = ClashMetaConfiguration()
-    elif config_format == "clash":
-        conf = ClashConfiguration()
-    elif config_format == "sing-box":
-        conf = SingBoxConfiguration()
-    elif config_format == "outline":
-        conf = OutlineConfiguration()
-    elif config_format == "v2ray-json":
-        conf = V2rayJsonConfig()
-    else:
-        raise ValueError(f'Unsupported format "{config_format}"')
-
-    for note in formatted_notes:
-        conf.add(remark=note, address="0.0.0.0", inbound=inbound, settings=settings)
-
-    config = conf.render(reverse=reverse)
-    if isinstance(config, list):
-        config = "\n".join(config)
-    return config
 
 
 def generate_subscription(
@@ -234,30 +183,20 @@ def generate_subscription(
     if hasattr(status, "value"):
         status = status.value
     status_notes = get_status_notes(status)
-
-    if status_notes and status in {"expired", "limited", "disabled"}:
-        config = generate_custom_remarks_subscription(
-            config_format=config_format,
-            status_notes=status_notes,
-            extra_data=kwargs["extra_data"],
-            reverse=reverse,
-        )
-        if as_base64:
-            config = base64.b64encode(config.encode()).decode()
-        return config
+    custom_remarks = status_notes if status_notes and status in {"expired", "limited", "disabled"} else None
 
     if config_format == "v2ray":
-        config = "\n".join(generate_v2ray_links(**kwargs))
+        config = "\n".join(generate_v2ray_links(**kwargs, custom_remarks=custom_remarks))
     elif config_format == "clash-meta":
-        config = generate_clash_subscription(**kwargs, is_meta=True)
+        config = generate_clash_subscription(**kwargs, is_meta=True, custom_remarks=custom_remarks)
     elif config_format == "clash":
-        config = generate_clash_subscription(**kwargs)
+        config = generate_clash_subscription(**kwargs, custom_remarks=custom_remarks)
     elif config_format == "sing-box":
-        config = generate_singbox_subscription(**kwargs)
+        config = generate_singbox_subscription(**kwargs, custom_remarks=custom_remarks)
     elif config_format == "outline":
-        config = generate_outline_subscription(**kwargs)
+        config = generate_outline_subscription(**kwargs, custom_remarks=custom_remarks)
     elif config_format == "v2ray-json":
-        config = generate_v2ray_json_subscription(**kwargs)
+        config = generate_v2ray_json_subscription(**kwargs, custom_remarks=custom_remarks)
     else:
         raise ValueError(f'Unsupported format "{config_format}"')
 
@@ -393,6 +332,7 @@ def process_inbounds_and_tags(
             OutlineConfiguration
         ],
         reverse=False,
+        custom_remarks: list[str] | None = None,
 ) -> Union[List, str]:
     _inbounds = []
     for protocol, tags in inbounds.items():
@@ -403,6 +343,7 @@ def process_inbounds_and_tags(
     inbounds = sorted(
         _inbounds, key=lambda x: index_dict.get(x[1][0], float('inf')))
 
+    entries = []
     for protocol, tags in inbounds:
         settings = proxies.get(protocol)
         if not settings:
@@ -475,12 +416,40 @@ def process_inbounds_and_tags(
                     }
                 )
 
-                conf.add(
-                    remark=host["remark"].format_map(format_variables),
-                    address=address.format_map(format_variables),
-                    inbound=host_inbound,
-                    settings=settings.model_dump()
+                entries.append(
+                    {
+                        "remark": host["remark"].format_map(format_variables),
+                        "address": address.format_map(format_variables),
+                        "inbound": host_inbound,
+                        "settings": settings.model_dump(),
+                        "format_variables": format_variables.copy(),
+                    }
                 )
+
+    if custom_remarks:
+        total_entries = len(entries)
+        if reverse:
+            target_indices = list(
+                range(total_entries - 1, max(total_entries - len(custom_remarks), 0) - 1, -1)
+            )
+        else:
+            target_indices = list(range(0, min(total_entries, len(custom_remarks))))
+
+        for note, idx in zip(custom_remarks, target_indices):
+            entry = entries[idx]
+            entry["remark"] = note.format_map(entry["format_variables"])
+
+        if SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS:
+            target_index_set = set(target_indices)
+            entries = [entry for idx, entry in enumerate(entries) if idx in target_index_set]
+
+    for entry in entries:
+        conf.add(
+            remark=entry["remark"],
+            address=entry["address"],
+            inbound=entry["inbound"],
+            settings=entry["settings"],
+        )
 
     return conf.render(reverse=reverse)
 
