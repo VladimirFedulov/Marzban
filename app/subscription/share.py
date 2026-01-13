@@ -53,10 +53,9 @@ def generate_v2ray_links(proxies: dict, inbounds: dict, extra_data: dict, revers
     return process_inbounds_and_tags(inbounds, proxies, format_variables, conf=conf, reverse=reverse)
 
 
-def get_status_notes(extra_data: dict) -> list[str]:
+def get_status_notes(status: str | object) -> list[str]:
     if not SUBSCRIPTION_CUSTOM_NOTES_ENABLED:
         return []
-    status = extra_data.get("status")
     if hasattr(status, "value"):
         status = status.value
     return SUBSCRIPTION_CUSTOM_NOTES.get(status, [])
@@ -215,25 +214,24 @@ def generate_subscription(
     kwargs = {
         "proxies": user.proxies,
         "inbounds": user.inbounds,
-        "extra_data": user.__dict__,
+        "extra_data": user.model_dump(),
         "reverse": reverse,
     }
-    status_notes = get_status_notes(kwargs["extra_data"])
+    status = user.status
+    if hasattr(status, "value"):
+        status = status.value
+    status_notes = get_status_notes(status)
 
-    if status_notes:
-        status = kwargs["extra_data"].get("status")
-        if hasattr(status, "value"):
-            status = status.value
-        if status in {"expired", "limited", "disabled"}:
-            config = generate_custom_remarks_subscription(
-                config_format=config_format,
-                status_notes=status_notes,
-                extra_data=kwargs["extra_data"],
-                reverse=reverse,
-            )
-            if as_base64:
-                config = base64.b64encode(config.encode()).decode()
-            return config
+    if status_notes and status in {"expired", "limited", "disabled"}:
+        config = generate_custom_remarks_subscription(
+            config_format=config_format,
+            status_notes=status_notes,
+            extra_data=kwargs["extra_data"],
+            reverse=reverse,
+        )
+        if as_base64:
+            config = base64.b64encode(config.encode()).decode()
+        return config
 
     if config_format == "v2ray":
         config = "\n".join(generate_v2ray_links(**kwargs))
