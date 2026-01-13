@@ -261,11 +261,18 @@ _connection_backoff = {}
 _node_health: Dict[int, Dict[str, float]] = {}
 _node_health_lock = threading.Lock()
 _node_health_ttl = 30.0
+_force_reconnect_after = 300.0
 
 
 def _set_node_health(node_id: int, ok: bool):
     with _node_health_lock:
-        _node_health[node_id] = {"ok": ok, "checked_at": time.monotonic()}
+        now = time.monotonic()
+        entry = _node_health.get(node_id, {})
+        if ok:
+            entry["last_ok_at"] = now
+        entry["ok"] = ok
+        entry["checked_at"] = now
+        _node_health[node_id] = entry
 
 
 def get_healthy_nodes() -> List[Tuple[int, XRayNode]]:
@@ -282,6 +289,18 @@ def get_healthy_nodes() -> List[Tuple[int, XRayNode]]:
                 continue
             healthy_nodes.append((node_id, node))
     return healthy_nodes
+
+
+def should_force_reconnect(node_id: int) -> bool:
+    now = time.monotonic()
+    with _node_health_lock:
+        entry = _node_health.get(node_id)
+        if not entry:
+            return False
+        last_ok_at = entry.get("last_ok_at")
+        if not last_ok_at:
+            return False
+        return now - last_ok_at >= _force_reconnect_after
 
 
 def _connection_allowed(node_id: int) -> bool:
@@ -306,6 +325,13 @@ def _record_connection_failure(node_id: int):
 def _clear_connection_backoff(node_id: int):
     with _connection_lock:
         _connection_backoff.pop(node_id, None)
+
+
+def reset_node_connection(node_id: int):
+    _clear_connection_backoff(node_id)
+    with _connection_lock:
+        _connecting_nodes.pop(node_id, None)
+    remove_node(node_id)
 
 
 @threaded_function
@@ -402,6 +428,11 @@ def mark_node_connected(node_id: int, version: str = None):
     _change_node_status(node_id, NodeStatus.connected, version=version)
 
 
+def force_reconnect_node(node_id, config=None):
+    reset_node_connection(node_id)
+    return connect_node(node_id, config)
+
+
 __all__ = [
     "add_user",
     "remove_user",
@@ -411,5 +442,8 @@ __all__ = [
     "mark_node_error",
     "mark_node_connected",
     "get_healthy_nodes",
+    "should_force_reconnect",
     "restart_node",
+    "reset_node_connection",
+    "force_reconnect_node",
 ]
