@@ -1,3 +1,5 @@
+import re
+
 from decouple import config
 from dotenv import load_dotenv
 
@@ -152,6 +154,40 @@ DISABLE_RECORDING_NODE_USAGE = config("DISABLE_RECORDING_NODE_USAGE", cast=bool,
 SUB_UPDATE_INTERVAL = config("SUB_UPDATE_INTERVAL", default="12")
 SUB_SUPPORT_URL = config("SUB_SUPPORT_URL", default="https://t.me/")
 SUB_PROFILE_TITLE = config("SUB_PROFILE_TITLE", default="Subscription")
+
+
+def _split_subscription_notes(value: str) -> list[str]:
+    if not value:
+        return []
+    parts = re.split(r"[|\n]", str(value))
+    return [part.strip() for part in parts if part.strip()]
+
+
+SUBSCRIPTION_CUSTOM_NOTES_EXPIRED = config(
+    "SUBSCRIPTION_CUSTOM_NOTES_EXPIRED",
+    default="",
+    cast=_split_subscription_notes,
+)
+SUBSCRIPTION_CUSTOM_NOTES_LIMITED = config(
+    "SUBSCRIPTION_CUSTOM_NOTES_LIMITED",
+    default="",
+    cast=_split_subscription_notes,
+)
+SUBSCRIPTION_CUSTOM_NOTES_DISABLED = config(
+    "SUBSCRIPTION_CUSTOM_NOTES_DISABLED",
+    default="",
+    cast=_split_subscription_notes,
+)
+SUBSCRIPTION_CUSTOM_NOTES_ENABLED = config(
+    "SUBSCRIPTION_CUSTOM_NOTES_ENABLED",
+    default=True,
+    cast=bool,
+)
+SUBSCRIPTION_CUSTOM_NOTES = {
+    "expired": SUBSCRIPTION_CUSTOM_NOTES_EXPIRED,
+    "limited": SUBSCRIPTION_CUSTOM_NOTES_LIMITED,
+    "disabled": SUBSCRIPTION_CUSTOM_NOTES_DISABLED,
+}
 
 # HWID device limit
 def _cast_hwid_device_limit_mode(value):

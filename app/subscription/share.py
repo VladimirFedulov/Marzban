@@ -23,6 +23,8 @@ from config import (
     EXPIRED_STATUS_TEXT,
     LIMITED_STATUS_TEXT,
     ONHOLD_STATUS_TEXT,
+    SUBSCRIPTION_CUSTOM_NOTES,
+    SUBSCRIPTION_CUSTOM_NOTES_ENABLED,
 )
 
 SERVER_IP = get_public_ip()
@@ -51,8 +53,21 @@ def generate_v2ray_links(proxies: dict, inbounds: dict, extra_data: dict, revers
     return process_inbounds_and_tags(inbounds, proxies, format_variables, conf=conf, reverse=reverse)
 
 
+def get_status_notes(extra_data: dict) -> list[str]:
+    if not SUBSCRIPTION_CUSTOM_NOTES_ENABLED:
+        return []
+    status = extra_data.get("status")
+    if hasattr(status, "value"):
+        status = status.value
+    return SUBSCRIPTION_CUSTOM_NOTES.get(status, [])
+
+
 def generate_clash_subscription(
-        proxies: dict, inbounds: dict, extra_data: dict, reverse: bool, is_meta: bool = False
+        proxies: dict,
+        inbounds: dict,
+        extra_data: dict,
+        reverse: bool,
+        is_meta: bool = False,
 ) -> str:
     if is_meta is True:
         conf = ClashMetaConfiguration()
@@ -66,7 +81,10 @@ def generate_clash_subscription(
 
 
 def generate_singbox_subscription(
-        proxies: dict, inbounds: dict, extra_data: dict, reverse: bool
+        proxies: dict,
+        inbounds: dict,
+        extra_data: dict,
+        reverse: bool,
 ) -> str:
     conf = SingBoxConfiguration()
 
@@ -77,7 +95,10 @@ def generate_singbox_subscription(
 
 
 def generate_outline_subscription(
-        proxies: dict, inbounds: dict, extra_data: dict, reverse: bool,
+        proxies: dict,
+        inbounds: dict,
+        extra_data: dict,
+        reverse: bool,
 ) -> str:
     conf = OutlineConfiguration()
 
@@ -88,7 +109,10 @@ def generate_outline_subscription(
 
 
 def generate_v2ray_json_subscription(
-        proxies: dict, inbounds: dict, extra_data: dict, reverse: bool,
+        proxies: dict,
+        inbounds: dict,
+        extra_data: dict,
+        reverse: bool,
 ) -> str:
     conf = V2rayJsonConfig()
 
@@ -96,6 +120,90 @@ def generate_v2ray_json_subscription(
     return process_inbounds_and_tags(
         inbounds, proxies, format_variables, conf=conf, reverse=reverse
     )
+
+
+def build_fallback_inbound(port: int) -> dict:
+    return {
+        "protocol": "shadowsocks",
+        "network": "tcp",
+        "port": port,
+        "tls": "none",
+        "sni": "",
+        "host": "",
+        "path": "",
+        "header_type": "",
+        "alpn": "",
+        "fp": "",
+        "pbk": "",
+        "sid": "",
+        "spx": "",
+        "ais": "",
+        "fragment_setting": "",
+        "noise_setting": "",
+        "mux_enable": False,
+        "random_user_agent": False,
+        "scMaxEachPostBytes": None,
+        "scMaxConcurrentPosts": None,
+        "scMinPostsIntervalMs": None,
+        "xPaddingBytes": None,
+        "xmux": {},
+        "downloadSettings": {},
+        "mode": "auto",
+        "noGRPCHeader": None,
+        "heartbeatPeriod": 0,
+        "keepAlivePeriod": 0,
+        "scStreamUpServerSecs": None,
+    }
+
+
+def build_fallback_settings() -> dict:
+    return {
+        "password": "password",
+        "method": "aes-128-gcm",
+        "id": "00000000-0000-0000-0000-000000000000",
+        "flow": "",
+    }
+
+
+def format_custom_notes(notes: list[str], extra_data: dict) -> list[str]:
+    if not notes:
+        return []
+    format_variables = setup_format_variables(extra_data)
+    return [note.format_map(format_variables) for note in notes]
+
+
+def generate_custom_remarks_subscription(
+        config_format: Literal["v2ray", "clash-meta", "clash", "sing-box", "outline", "v2ray-json"],
+        status_notes: list[str],
+        extra_data: dict,
+        reverse: bool,
+) -> str:
+    formatted_notes = format_custom_notes(status_notes, extra_data)
+    if reverse:
+        formatted_notes = list(reversed(formatted_notes))
+
+    inbound = build_fallback_inbound(port=1)
+    settings = build_fallback_settings()
+
+    if config_format == "v2ray":
+        conf = V2rayShareLink()
+    elif config_format == "clash-meta":
+        conf = ClashMetaConfiguration()
+    elif config_format == "clash":
+        conf = ClashConfiguration()
+    elif config_format == "sing-box":
+        conf = SingBoxConfiguration()
+    elif config_format == "outline":
+        conf = OutlineConfiguration()
+    elif config_format == "v2ray-json":
+        conf = V2rayJsonConfig()
+    else:
+        raise ValueError(f'Unsupported format "{config_format}"')
+
+    for note in formatted_notes:
+        conf.add(remark=note, address="0.0.0.0", inbound=inbound, settings=settings)
+
+    return conf.render(reverse=reverse)
 
 
 def generate_subscription(
@@ -110,6 +218,22 @@ def generate_subscription(
         "extra_data": user.__dict__,
         "reverse": reverse,
     }
+    status_notes = get_status_notes(kwargs["extra_data"])
+
+    if status_notes:
+        status = kwargs["extra_data"].get("status")
+        if hasattr(status, "value"):
+            status = status.value
+        if status in {"expired", "limited", "disabled"}:
+            config = generate_custom_remarks_subscription(
+                config_format=config_format,
+                status_notes=status_notes,
+                extra_data=kwargs["extra_data"],
+                reverse=reverse,
+            )
+            if as_base64:
+                config = base64.b64encode(config.encode()).decode()
+            return config
 
     if config_format == "v2ray":
         config = "\n".join(generate_v2ray_links(**kwargs))
