@@ -310,6 +310,7 @@ By default the app will be run on `http://localhost:8000/dashboard`. You can con
 | CUSTOM_TEMPLATES_DIRECTORY               | Customized templates directory (default: `app/templates`)                                                                |
 | CLASH_SUBSCRIPTION_TEMPLATE              | The template that will be used for generating clash configs (default: `clash/default.yml`)                               |
 | SUBSCRIPTION_PAGE_TEMPLATE               | The template used for generating subscription info page (default: `subscription/index.html`)                             |
+| SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS | Hide default hosts when custom hosts exist (default: `False`)                                                    |
 | HOME_PAGE_TEMPLATE                       | Decoy page template (default: `home/index.html`)                                                                         |
 | HWID_DEVICE_LIMIT_ENABLED                | Enable HWID device limit for subscriptions (default: `False`)                                                            |
 | HWID_FALLBACK_DEVICE_LIMIT               | Default device limit when a user does not have a custom limit (default: `1`)                                             |
