@@ -155,6 +155,8 @@
   "userDialog.hwidDeviceLastSeen": "最近连接",
   "userDialog.hwidDevicesEmpty": "暂无设备记录。",
   "userDialog.hwidDevicesTitle": "设备列表",
+  "userDialog.copyHwid": "复制 HWID",
+  "userDialog.hwidCopied": "HWID 已复制",
   "userDialog.hwidDeviceLimitEnabled": "HWID 限制模式",
   "userDialog.hwidDeviceLimitModeHelp": "全局设置可以是启用、禁用或记录（Logging）。",
   "userDialog.hwidDeviceLimitHelp": "允许的最大设备数。留空将使用默认限制。",

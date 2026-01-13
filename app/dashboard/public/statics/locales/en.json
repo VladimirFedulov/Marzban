@@ -155,6 +155,8 @@
   "userDialog.hwidDeviceLastSeen": "Last seen",
   "userDialog.hwidDevicesEmpty": "No devices recorded yet.",
   "userDialog.hwidDevicesTitle": "Devices",
+  "userDialog.copyHwid": "Copy HWID",
+  "userDialog.hwidCopied": "HWID copied",
   "userDialog.hwidDeviceLimitEnabled": "HWID Limit Mode",
   "userDialog.hwidDeviceLimitModeHelp": "Global setting can be Enabled, Disabled, or Logging.",
   "userDialog.hwidDeviceLimitHelp": "Max devices allowed. Leave empty to use the fallback limit.",
