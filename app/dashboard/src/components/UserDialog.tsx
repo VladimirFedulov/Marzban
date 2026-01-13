@@ -472,6 +472,10 @@ export const UserDialog: FC<UserDialogProps> = () => {
     hwid.length > hwidDisplayLimit
       ? `${hwid.slice(0, hwidDisplayLimit)}…`
       : hwid;
+  const formatUserAgent = (userAgent: string) =>
+    userAgent.length > hwidDisplayLimit
+      ? `${userAgent.slice(0, hwidDisplayLimit)}…`
+      : userAgent;
 
   useEffect(() => {
     if (copiedHwidId === null) {
@@ -1036,6 +1040,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                 ]
                                   .filter(Boolean)
                                   .join(" • ");
+                                const userAgent = device.user_agent?.trim();
                                 return (
                                   <Tr key={device.id}>
                                     <Td minW="240px">
@@ -1081,7 +1086,31 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                       </HStack>
                                     </Td>
                                     <Td minW="220px">
-                                      {deviceInfo || "-"}
+                                      <Text>
+                                        {deviceInfo || "-"}
+                                        <br />
+                                        <Text as="span" fontSize="xs" color="gray.500">
+                                          {t("userDialog.hwidDeviceUserAgent")}:{" "}
+                                        </Text>
+                                        {userAgent ? (
+                                          <Tooltip
+                                            label={userAgent}
+                                            placement="top-start"
+                                          >
+                                            <Text
+                                              as="span"
+                                              fontSize="xs"
+                                              color="gray.500"
+                                            >
+                                              {formatUserAgent(userAgent)}
+                                            </Text>
+                                          </Tooltip>
+                                        ) : (
+                                          <Text as="span" fontSize="xs" color="gray.500">
+                                            -
+                                          </Text>
+                                        )}
+                                      </Text>
                                     </Td>
                                     <Td minW="170px">
                                       {dayjs(device.last_seen_at).isValid()

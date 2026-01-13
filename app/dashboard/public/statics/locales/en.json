@@ -152,6 +152,7 @@
   "userDialog.hwidDeviceCount": "Devices connected: {{count}}",
   "userDialog.hwidDeviceColumn": "HWID",
   "userDialog.hwidDeviceInfo": "Device info",
+  "userDialog.hwidDeviceUserAgent": "User agent",
   "userDialog.hwidDeviceLastSeen": "Last seen",
   "userDialog.hwidDevicesEmpty": "No devices recorded yet.",
   "userDialog.hwidDevicesTitle": "Devices",
