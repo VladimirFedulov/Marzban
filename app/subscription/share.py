@@ -23,6 +23,7 @@ from config import (
     EXPIRED_STATUS_TEXT,
     LIMITED_STATUS_TEXT,
     ONHOLD_STATUS_TEXT,
+    SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS,
     SUBSCRIPTION_CUSTOM_NOTES,
 )
 
@@ -44,6 +45,18 @@ STATUS_TEXTS = {
     "disabled": DISABLED_STATUS_TEXT,
     "on_hold": ONHOLD_STATUS_TEXT,
 }
+
+DEFAULT_HOST_REMARK = "🚀 Marz ({USERNAME}) [{PROTOCOL} - {TRANSPORT}]"
+DEFAULT_HOST_ADDRESS_TOKENS = {"{SERVER_IP}", "{SERVER_IPV6}"}
+
+
+def is_default_host(host: dict) -> bool:
+    address = host.get("address") or []
+    return (
+        host.get("remark") == DEFAULT_HOST_REMARK
+        and len(address) == 1
+        and address[0] in DEFAULT_HOST_ADDRESS_TOKENS
+    )
 
 
 def generate_v2ray_links(proxies: dict, inbounds: dict, extra_data: dict, reverse: bool) -> list:
@@ -199,7 +212,10 @@ def generate_custom_remarks_subscription(
     for note in formatted_notes:
         conf.add(remark=note, address="0.0.0.0", inbound=inbound, settings=settings)
 
-    return conf.render(reverse=reverse)
+    config = conf.render(reverse=reverse)
+    if isinstance(config, list):
+        config = "\n".join(config)
+    return config
 
 
 def generate_subscription(
@@ -246,6 +262,8 @@ def generate_subscription(
         raise ValueError(f'Unsupported format "{config_format}"')
 
     if as_base64:
+        if isinstance(config, list):
+            config = "\n".join(config)
         config = base64.b64encode(config.encode()).decode()
 
     return config
@@ -398,7 +416,18 @@ def process_inbounds_and_tags(
 
             format_variables.update({"TRANSPORT": inbound["network"]})
             host_inbound = inbound.copy()
-            for host in xray.hosts.get(tag, []):
+            hosts = xray.hosts.get(tag, [])
+            if hosts:
+                default_hosts = [host for host in hosts if is_default_host(host)]
+                custom_hosts = [host for host in hosts if not is_default_host(host)]
+                if custom_hosts:
+                    hosts = (
+                        custom_hosts
+                        if SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS
+                        else custom_hosts + default_hosts
+                    )
+
+            for host in hosts:
                 sni = ""
                 sni_list = host["sni"] or inbound["sni"]
                 if sni_list:

@@ -283,6 +283,7 @@ server {
 |                                                                                                                آدرس محل template های شخصی سازی شده کاربر |        CUSTOM_TEMPLATES_DIRECTORY        |
 |                                                                            تمپلیت مورد استفاده برای تولید کانفیگ های Clash (پیشفرض: `clash/default.yml`) |       CLASH_SUBSCRIPTION_TEMPLATE        |
 |                                                                                      تمپلیت صفحه اطلاعات اشتراک کاربر (پیشفرض `subscription/index.html`) |        SUBSCRIPTION_PAGE_TEMPLATE        |
+|                                                                       مخفی کردن هاست‌های پیش‌فرض زمانی که هاست سفارشی وجود دارد (پیشفرض: `False`) | SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS |
 |                                                                                                              تمپلیت صفحه اول (پیشفرض: `home/index.html`) |            HOME_PAGE_TEMPLATE            |
 |                                                                                        توکن ربات تلگرام (دریافت از [@botfather](https://t.me/botfather)) |            TELEGRAM_API_TOKEN            |
 |                                                                           آیدی عددی ادمین در تلگرام (دریافت از [@userinfobot](https://t.me/userinfobot)) |            TELEGRAM_ADMIN_ID             |
