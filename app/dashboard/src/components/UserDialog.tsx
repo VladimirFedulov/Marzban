@@ -1058,23 +1058,25 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                             setCopiedHwidId(device.id)
                                           }
                                         >
-                                          <Tooltip
-                                            label={
-                                              copiedHwidId === device.id
-                                                ? t("userDialog.hwidCopied")
-                                                : t("userDialog.copyHwid")
-                                            }
-                                            placement="top"
-                                          >
-                                            <IconButton
-                                              aria-label={t(
-                                                "userDialog.copyHwid"
-                                              )}
-                                              size="xs"
-                                              variant="ghost"
-                                              icon={<HwidCopyIcon />}
-                                            />
-                                          </Tooltip>
+                                          <Box as="span">
+                                            <Tooltip
+                                              label={
+                                                copiedHwidId === device.id
+                                                  ? t("userDialog.hwidCopied")
+                                                  : t("userDialog.copyHwid")
+                                              }
+                                              placement="top"
+                                            >
+                                              <IconButton
+                                                aria-label={t(
+                                                  "userDialog.copyHwid"
+                                                )}
+                                                size="xs"
+                                                variant="ghost"
+                                                icon={<HwidCopyIcon />}
+                                              />
+                                            </Tooltip>
+                                          </Box>
                                         </CopyToClipboard>
                                       </HStack>
                                     </Td>
