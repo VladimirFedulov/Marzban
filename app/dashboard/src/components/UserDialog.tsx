@@ -484,7 +484,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
 
     const timeoutId = window.setTimeout(() => {
       setCopiedHwidId(null);
-    }, 2500);
+    }, 1000);
 
     return () => window.clearTimeout(timeoutId);
   }, [copiedHwidId]);
@@ -1071,6 +1071,9 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                                   : t("userDialog.copyHwid")
                                               }
                                               placement="top"
+                                              {...(copiedHwidId === device.id
+                                                ? { isOpen: true }
+                                                : {})}
                                             >
                                               <IconButton
                                                 aria-label={t(
