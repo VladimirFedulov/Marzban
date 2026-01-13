@@ -40,6 +40,7 @@ import {
 } from "@chakra-ui/react";
 import {
   ChartPieIcon,
+  ClipboardIcon,
   PencilIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
@@ -48,11 +49,12 @@ import { resetStrategy } from "constants/UserSettings";
 import { fetch } from "service/http";
 import { FilterUsageType, useDashboard } from "contexts/DashboardContext";
 import dayjs from "dayjs";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import ReactApexChart from "react-apexcharts";
 import ReactDatePicker from "react-datepicker";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import CopyToClipboard from "react-copy-to-clipboard";
 import {
   ProxyKeys,
   ProxyType,
@@ -88,6 +90,12 @@ const UserUsageIcon = chakra(ChartPieIcon, {
   baseStyle: {
     w: 5,
     h: 5,
+  },
+});
+const HwidCopyIcon = chakra(ClipboardIcon, {
+  baseStyle: {
+    w: 4,
+    h: 4,
   },
 });
 
@@ -294,6 +302,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
   const [hwidDeviceDeletingId, setHwidDeviceDeletingId] = useState<number | null>(
     null
   );
+  const [copiedHwidId, setCopiedHwidId] = useState<number | null>(null);
   const fetchUsageWithFilter = (query: FilterUsageType) => {
     fetchUserUsage(editingUser!, query).then((data: any) => {
       const labels = [];
@@ -443,6 +452,38 @@ export const UserDialog: FC<UserDialogProps> = () => {
   const disabled = loading;
   const isOnHold = userStatus === "on_hold";
   const hwidDeviceLimitEnabled = form.watch("hwid_device_limit_enabled");
+  const sortedHwidDevices = useMemo(() => {
+    if (!hwidDevices) {
+      return null;
+    }
+
+    return [...hwidDevices].sort((a, b) => {
+      const aTime = dayjs(a.last_seen_at).isValid()
+        ? dayjs(a.last_seen_at).valueOf()
+        : 0;
+      const bTime = dayjs(b.last_seen_at).isValid()
+        ? dayjs(b.last_seen_at).valueOf()
+        : 0;
+      return bTime - aTime;
+    });
+  }, [hwidDevices]);
+  const hwidDisplayLimit = 25;
+  const formatHwid = (hwid: string) =>
+    hwid.length > hwidDisplayLimit
+      ? `${hwid.slice(0, hwidDisplayLimit)}…`
+      : hwid;
+
+  useEffect(() => {
+    if (copiedHwidId === null) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setCopiedHwidId(null);
+    }, 1000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [copiedHwidId]);
 
   const [randomUsernameLoading, setrandomUsernameLoading] = useState(false);
 
@@ -957,12 +998,12 @@ export const UserDialog: FC<UserDialogProps> = () => {
                     </FormHelperText>
                   </FormControl>
 
-                  {hwidDevices && (
+                  {sortedHwidDevices && (
                     <Box>
                       <Text fontWeight="medium" mb={2}>
                         {t("userDialog.hwidDevicesTitle")}
                       </Text>
-                      {hwidDevices.length === 0 ? (
+                      {sortedHwidDevices.length === 0 ? (
                         <Text fontSize="sm" color="gray.500">
                           {t("userDialog.hwidDevicesEmpty")}
                         </Text>
@@ -979,13 +1020,15 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                 <Th>{t("userDialog.hwidDeviceColumn")}</Th>
                                 <Th>{t("userDialog.hwidDeviceInfo")}</Th>
                                 <Th>{t("userDialog.hwidDeviceLastSeen")}</Th>
-                                <Th textAlign="right">
-                                  {t("userDialog.hwidDeviceActions")}
+                                <Th textAlign="center" width="48px" px={2}>
+                                  <Text as="span" aria-hidden="true">
+                                    ✖
+                                  </Text>
                                 </Th>
                               </Tr>
                             </Thead>
                             <Tbody>
-                              {hwidDevices.map((device) => {
+                              {sortedHwidDevices.map((device) => {
                                 const deviceInfo = [
                                   device.device_os,
                                   device.device_model,
@@ -995,8 +1038,45 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                   .join(" • ");
                                 return (
                                   <Tr key={device.id}>
-                                    <Td minW="240px" wordBreak="break-all">
-                                      {device.hwid}
+                                    <Td minW="240px">
+                                      <HStack spacing={2}>
+                                        <Tooltip
+                                          label={device.hwid}
+                                          placement="top-start"
+                                        >
+                                          <Text
+                                            as="span"
+                                            fontFamily="mono"
+                                            noOfLines={1}
+                                          >
+                                            {formatHwid(device.hwid)}
+                                          </Text>
+                                        </Tooltip>
+                                        <CopyToClipboard
+                                          text={device.hwid}
+                                          onCopy={() =>
+                                            setCopiedHwidId(device.id)
+                                          }
+                                        >
+                                          <Tooltip
+                                            label={
+                                              copiedHwidId === device.id
+                                                ? t("userDialog.hwidCopied")
+                                                : t("userDialog.copyHwid")
+                                            }
+                                            placement="top"
+                                          >
+                                            <IconButton
+                                              aria-label={t(
+                                                "userDialog.copyHwid"
+                                              )}
+                                              size="xs"
+                                              variant="ghost"
+                                              icon={<HwidCopyIcon />}
+                                            />
+                                          </Tooltip>
+                                        </CopyToClipboard>
+                                      </HStack>
                                     </Td>
                                     <Td minW="220px">
                                       {deviceInfo || "-"}
@@ -1008,7 +1088,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                           )
                                         : "-"}
                                     </Td>
-                                    <Td textAlign="right">
+                                    <Td textAlign="center" px={2} width="48px">
                                       <Tooltip label={t("delete")}>
                                         <IconButton
                                           aria-label={t("delete")}

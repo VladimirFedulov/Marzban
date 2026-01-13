@@ -161,6 +161,8 @@
   "userDialog.hwidDeviceLastSeen": "آخرین زمان",
   "userDialog.hwidDevicesEmpty": "هنوز دستگاهی ثبت نشده است.",
   "userDialog.hwidDevicesTitle": "دستگاه‌ها",
+  "userDialog.copyHwid": "کپی HWID",
+  "userDialog.hwidCopied": "HWID کپی شد",
   "userDialog.hwidDeviceLimitEnabled": "حالت محدودیت HWID",
   "userDialog.hwidDeviceLimitModeHelp": "تنظیمات سراسری می‌تواند فعال، غیرفعال یا ثبت (Logging) باشد.",
   "userDialog.hwidDeviceLimitHelp": "حداکثر تعداد دستگاه‌ها. برای استفاده از حد پیش‌فرض خالی بگذارید.",
