@@ -7,6 +7,7 @@ from typing import Union
 
 from pymysql.err import OperationalError
 from sqlalchemy import and_, bindparam, insert, select, update
+from sqlalchemy.exc import OperationalError as SAOperationalError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.dml import Insert
 
@@ -25,6 +26,18 @@ from xray_api import XRay as XRayAPI
 from xray_api import exc as xray_exc
 
 
+def _is_deadlock_error(err: Exception) -> bool:
+    if isinstance(err, OperationalError):
+        return err.args[0] == 1213
+    if isinstance(err, SAOperationalError):
+        orig = getattr(err, "orig", None)
+        if isinstance(orig, OperationalError):
+            return orig.args[0] == 1213
+        if hasattr(orig, "args") and orig.args:
+            return orig.args[0] == 1213
+    return False
+
+
 def safe_execute(db: Session, stmt, params=None):
     if db.bind.name == 'mysql':
         if isinstance(stmt, Insert):
@@ -38,8 +51,8 @@ def safe_execute(db: Session, stmt, params=None):
                 db.connection().execute(stmt, params)
                 db.commit()
                 done = True
-            except OperationalError as err:
-                if err.args[0] == 1213 and tries < max_retries:  # Deadlock
+            except (OperationalError, SAOperationalError) as err:
+                if _is_deadlock_error(err) and tries < max_retries:  # Deadlock
                     db.rollback()
                     tries += 1
                     time.sleep(0.1 * (2 ** (tries - 1)))
