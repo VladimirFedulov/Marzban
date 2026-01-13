@@ -152,6 +152,7 @@
   "userDialog.hwidDeviceCount": "Подключено устройств: {{count}}",
   "userDialog.hwidDeviceColumn": "HWID",
   "userDialog.hwidDeviceInfo": "Данные устройства",
+  "userDialog.hwidDeviceUserAgent": "User-Agent",
   "userDialog.hwidDeviceLastSeen": "Обновлено",
   "userDialog.hwidDevicesEmpty": "Устройства ещё не записаны.",
   "userDialog.hwidDevicesTitle": "Устройства",

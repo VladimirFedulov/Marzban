@@ -152,6 +152,7 @@
   "userDialog.hwidDeviceCount": "已连接设备数：{{count}}",
   "userDialog.hwidDeviceColumn": "HWID",
   "userDialog.hwidDeviceInfo": "设备信息",
+  "userDialog.hwidDeviceUserAgent": "User Agent",
   "userDialog.hwidDeviceLastSeen": "最近连接",
   "userDialog.hwidDevicesEmpty": "暂无设备记录。",
   "userDialog.hwidDevicesTitle": "设备列表",

@@ -158,6 +158,7 @@
   "userDialog.hwidDeviceCount": "دستگاه‌های متصل: {{count}}",
   "userDialog.hwidDeviceColumn": "HWID",
   "userDialog.hwidDeviceInfo": "اطلاعات دستگاه",
+  "userDialog.hwidDeviceUserAgent": "User agent",
   "userDialog.hwidDeviceLastSeen": "آخرین زمان",
   "userDialog.hwidDevicesEmpty": "هنوز دستگاهی ثبت نشده است.",
   "userDialog.hwidDevicesTitle": "دستگاه‌ها",
