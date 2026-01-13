@@ -480,7 +480,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
 
     const timeoutId = window.setTimeout(() => {
       setCopiedHwidId(null);
-    }, 1000);
+    }, 2500);
 
     return () => window.clearTimeout(timeoutId);
   }, [copiedHwidId]);
