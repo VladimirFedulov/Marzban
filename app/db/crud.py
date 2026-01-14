@@ -4,9 +4,11 @@ Functions for managing proxy hosts, users, user templates, nodes, and administra
 
 from datetime import datetime, timedelta
 from enum import Enum
+from time import sleep
 from typing import Dict, List, Optional, Tuple, Union
 
 from sqlalchemy import and_, delete, func, or_
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Query, Session, joinedload
 from sqlalchemy.sql.functions import coalesce
 
@@ -685,6 +687,14 @@ def count_user_hwid_devices(db: Session, dbuser: User) -> int:
     return db.query(UserHwidDevice).filter(UserHwidDevice.user_id == dbuser.id).count()
 
 
+def _is_deadlock_error(error: OperationalError) -> bool:
+    orig = getattr(error, "orig", None)
+    if not orig:
+        return False
+    code = orig.args[0] if getattr(orig, "args", None) else None
+    return code == 1213
+
+
 def delete_expired_hwid_devices(db: Session, retention_days: int) -> int:
     if retention_days < 0:
         return 0
@@ -706,31 +716,38 @@ def upsert_user_hwid_device(
     device_os_version: Optional[str],
     user_agent: Optional[str],
 ) -> UserHwidDevice:
-    device = get_user_hwid_device(db, dbuser, hwid)
-    if device:
-        device.device_os = device_os
-        device.device_model = device_model
-        device.device_os_version = device_os_version
-        device.user_agent = user_agent
-        device.last_seen_at = datetime.utcnow()
-        db.add(device)
-        db.commit()
+    max_retries = 3
+    for attempt in range(max_retries):
+        device = get_user_hwid_device(db, dbuser, hwid)
+        if device:
+            device.device_os = device_os
+            device.device_model = device_model
+            device.device_os_version = device_os_version
+            device.user_agent = user_agent
+            device.last_seen_at = datetime.utcnow()
+            db.add(device)
+        else:
+            device = UserHwidDevice(
+                user_id=dbuser.id,
+                hwid=hwid,
+                device_os=device_os,
+                device_model=device_model,
+                device_os_version=device_os_version,
+                user_agent=user_agent,
+                last_seen_at=datetime.utcnow(),
+            )
+            db.add(device)
+        try:
+            db.commit()
+        except OperationalError as exc:
+            db.rollback()
+            if not _is_deadlock_error(exc) or attempt == max_retries - 1:
+                raise
+            sleep(0.05 * (attempt + 1))
+            continue
         db.refresh(device)
         return device
-
-    device = UserHwidDevice(
-        user=dbuser,
-        hwid=hwid,
-        device_os=device_os,
-        device_model=device_model,
-        device_os_version=device_os_version,
-        user_agent=user_agent,
-        last_seen_at=datetime.utcnow(),
-    )
-    db.add(device)
-    db.commit()
-    db.refresh(device)
-    return device
+    raise RuntimeError("Failed to upsert user HWID device after retrying.")
 
 
 def delete_user_hwid_device(db: Session, dbuser: User, device_id: int) -> bool:
