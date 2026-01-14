@@ -356,7 +356,6 @@ def process_inbounds_and_tags(
                 continue
 
             format_variables.update({"TRANSPORT": inbound["network"]})
-            host_inbound = inbound.copy()
             hosts = xray.hosts.get(tag, [])
             if hosts:
                 default_hosts = [host for host in hosts if is_default_host(host)]
@@ -369,14 +368,18 @@ def process_inbounds_and_tags(
                     )
 
             for host in hosts:
+                host_inbound = inbound.copy()
                 sni = ""
                 sni_list = host["sni"] or inbound["sni"]
                 if sni_list:
                     salt = secrets.token_hex(8)
                     sni = random.choice(sni_list).replace("*", salt)
 
+                sid_value = None
                 if sids := inbound.get("sids"):
-                    inbound["sid"] = random.choice(sids)
+                    sid_value = random.choice(sids)
+                else:
+                    sid_value = inbound.get("sid")
 
                 req_host = ""
                 req_host_list = host["host"] or inbound["host"]
@@ -398,23 +401,23 @@ def process_inbounds_and_tags(
                 if host.get("use_sni_as_host", False) and sni:
                     req_host = sni
 
-                host_inbound.update(
-                    {
-                        "port": host["port"] or inbound["port"],
-                        "sni": sni,
-                        "host": req_host,
-                        "tls": inbound["tls"] if host["tls"] is None else host["tls"],
-                        "alpn": host["alpn"] if host["alpn"] else None,
-                        "path": path,
-                        "fp": host["fingerprint"] or inbound.get("fp", ""),
-                        "ais": host["allowinsecure"]
-                        or inbound.get("allowinsecure", ""),
-                        "mux_enable": host["mux_enable"],
-                        "fragment_setting": host["fragment_setting"],
-                        "noise_setting": host["noise_setting"],
-                        "random_user_agent": host["random_user_agent"],
-                    }
-                )
+                host_update = {
+                    "port": host["port"] or inbound["port"],
+                    "sni": sni,
+                    "host": req_host,
+                    "tls": inbound["tls"] if host["tls"] is None else host["tls"],
+                    "alpn": host["alpn"] if host["alpn"] else None,
+                    "path": path,
+                    "fp": host["fingerprint"] or inbound.get("fp", ""),
+                    "ais": host["allowinsecure"] or inbound.get("allowinsecure", ""),
+                    "mux_enable": host["mux_enable"],
+                    "fragment_setting": host["fragment_setting"],
+                    "noise_setting": host["noise_setting"],
+                    "random_user_agent": host["random_user_agent"],
+                }
+                if sid_value is not None:
+                    host_update["sid"] = sid_value
+                host_inbound.update(host_update)
 
                 entries.append(
                     {
