@@ -8,7 +8,7 @@ from time import sleep
 from typing import Dict, List, Optional, Tuple, Union
 
 from sqlalchemy import and_, delete, func, or_
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Query, Session, joinedload
 from sqlalchemy.sql.functions import coalesce
 
@@ -695,6 +695,14 @@ def _is_deadlock_error(error: OperationalError) -> bool:
     return code == 1213
 
 
+def _is_duplicate_error(error: IntegrityError) -> bool:
+    orig = getattr(error, "orig", None)
+    if not orig:
+        return False
+    code = orig.args[0] if getattr(orig, "args", None) else None
+    return code == 1062
+
+
 def delete_expired_hwid_devices(db: Session, retention_days: int) -> int:
     if retention_days < 0:
         return 0
@@ -742,6 +750,30 @@ def upsert_user_hwid_device(
         except OperationalError as exc:
             db.rollback()
             if not _is_deadlock_error(exc) or attempt == max_retries - 1:
+                raise
+            sleep(0.05 * (attempt + 1))
+            continue
+        except IntegrityError as exc:
+            db.rollback()
+            if not _is_duplicate_error(exc):
+                raise
+            existing = get_user_hwid_device(db, dbuser, hwid)
+            if not existing:
+                existing = db.query(UserHwidDevice).filter(
+                    UserHwidDevice.user_id == dbuser.id,
+                ).order_by(UserHwidDevice.id.desc()).first()
+            if existing:
+                existing.hwid = hwid
+                existing.device_os = device_os
+                existing.device_model = device_model
+                existing.device_os_version = device_os_version
+                existing.user_agent = user_agent
+                existing.last_seen_at = datetime.utcnow()
+                db.add(existing)
+                db.commit()
+                db.refresh(existing)
+                return existing
+            if attempt == max_retries - 1:
                 raise
             sleep(0.05 * (attempt + 1))
             continue
