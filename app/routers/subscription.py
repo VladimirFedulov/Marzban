@@ -4,6 +4,9 @@ from distutils.version import LooseVersion
 from fastapi import APIRouter, Depends, Header, Path, Request, Response
 from fastapi.responses import HTMLResponse
 
+from sqlalchemy.exc import OperationalError
+
+from app import logger
 from app.db import Session, crud, get_db
 from app.db.models import User
 from app.dependencies import get_validated_sub, validate_dates
@@ -62,22 +65,34 @@ def enforce_hwid_device_limit(
             return True
         return False
 
-    crud.delete_expired_user_hwid_devices(
-        db=db,
-        dbuser=dbuser,
-        retention_days=HWID_DEVICE_RETENTION_DAYS,
-    )
-
-    if mode == "logging":
-        crud.upsert_user_hwid_device(
+    try:
+        crud.delete_expired_user_hwid_devices(
             db=db,
             dbuser=dbuser,
-            hwid=hwid,
-            device_os=request.headers.get("x-device-os"),
-            device_model=request.headers.get("x-device-model"),
-            device_os_version=request.headers.get("x-ver-os"),
-            user_agent=user_agent,
+            retention_days=HWID_DEVICE_RETENTION_DAYS,
         )
+    except OperationalError:
+        logger.warning(
+            "Failed to cleanup expired HWID devices for user %s due to database error; allowing subscription.",
+            dbuser.id,
+        )
+
+    if mode == "logging":
+        try:
+            crud.upsert_user_hwid_device(
+                db=db,
+                dbuser=dbuser,
+                hwid=hwid,
+                device_os=request.headers.get("x-device-os"),
+                device_model=request.headers.get("x-device-model"),
+                device_os_version=request.headers.get("x-ver-os"),
+                user_agent=user_agent,
+            )
+        except OperationalError:
+            logger.warning(
+                "Failed to log HWID device for user %s due to database error; allowing subscription.",
+                dbuser.id,
+            )
         return True
 
     limit = (
@@ -94,15 +109,21 @@ def enforce_hwid_device_limit(
         if devices_count >= limit:
             return False
 
-    crud.upsert_user_hwid_device(
-        db=db,
-        dbuser=dbuser,
-        hwid=hwid,
-        device_os=request.headers.get("x-device-os"),
-        device_model=request.headers.get("x-device-model"),
-        device_os_version=request.headers.get("x-ver-os"),
-        user_agent=user_agent,
-    )
+    try:
+        crud.upsert_user_hwid_device(
+            db=db,
+            dbuser=dbuser,
+            hwid=hwid,
+            device_os=request.headers.get("x-device-os"),
+            device_model=request.headers.get("x-device-model"),
+            device_os_version=request.headers.get("x-ver-os"),
+            user_agent=user_agent,
+        )
+    except OperationalError:
+        logger.warning(
+            "Failed to store HWID device for user %s due to database error; allowing subscription.",
+            dbuser.id,
+        )
     return True
 
 
