@@ -14,6 +14,7 @@ import {
   Switch,
   Text,
   Textarea,
+  useColorModeValue,
   useToast,
   VStack,
 } from "@chakra-ui/react";
@@ -65,6 +66,16 @@ export const Settings = () => {
   const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
+  const cardBg = useColorModeValue("white", "gray.800");
+  const cardBorder = useColorModeValue("gray.200", "whiteAlpha.200");
+  const cardShadow = useColorModeValue("sm", "md");
+  const groupTitleColor = useColorModeValue("gray.700", "gray.100");
+  const labelColor = useColorModeValue("gray.600", "gray.300");
+  const helperTextColor = useColorModeValue("gray.600", "gray.400");
+  const inputBg = useColorModeValue("white", "whiteAlpha.100");
+  const inputBorder = useColorModeValue("gray.200", "whiteAlpha.300");
+  const inputHoverBorder = useColorModeValue("gray.300", "whiteAlpha.400");
+  const inputFocusBorder = useColorModeValue("blue.400", "blue.300");
   const { data, isLoading } = useQuery<SettingsResponse>({
     queryKey: ["settings"],
     queryFn: () => fetch("/settings"),
@@ -145,6 +156,7 @@ export const Settings = () => {
       return (
         <Switch
           isChecked={Boolean(value)}
+          colorScheme="blue"
           onChange={(event) =>
             setDraftValues((prev) => ({
               ...prev,
@@ -158,6 +170,10 @@ export const Settings = () => {
       return (
         <Input
           type="number"
+          bg={inputBg}
+          borderColor={inputBorder}
+          _hover={{ borderColor: inputHoverBorder }}
+          _focusVisible={{ borderColor: inputFocusBorder, boxShadow: "none" }}
           value={String(value ?? "")}
           onChange={(event) =>
             setDraftValues((prev) => ({
@@ -171,6 +187,10 @@ export const Settings = () => {
     if (setting.inputType === "textarea") {
       return (
         <Textarea
+          bg={inputBg}
+          borderColor={inputBorder}
+          _hover={{ borderColor: inputHoverBorder }}
+          _focusVisible={{ borderColor: inputFocusBorder, boxShadow: "none" }}
           value={String(value ?? "")}
           onChange={(event) =>
             setDraftValues((prev) => ({
@@ -184,6 +204,10 @@ export const Settings = () => {
     if (setting.inputType === "select") {
       return (
         <Select
+          bg={inputBg}
+          borderColor={inputBorder}
+          _hover={{ borderColor: inputHoverBorder }}
+          _focusVisible={{ borderColor: inputFocusBorder, boxShadow: "none" }}
           value={String(value ?? "")}
           onChange={(event) =>
             setDraftValues((prev) => ({
@@ -203,6 +227,10 @@ export const Settings = () => {
     return (
       <Input
         type="text"
+        bg={inputBg}
+        borderColor={inputBorder}
+        _hover={{ borderColor: inputHoverBorder }}
+        _focusVisible={{ borderColor: inputFocusBorder, boxShadow: "none" }}
         value={String(value ?? "")}
         onChange={(event) =>
           setDraftValues((prev) => ({
@@ -222,13 +250,16 @@ export const Settings = () => {
           borderWidth="1px"
           borderRadius="xl"
           p={{ base: 5, md: 6 }}
-          bg="chakra-body-bg"
-          boxShadow="sm"
+          bg={cardBg}
+          borderColor={cardBorder}
+          boxShadow={cardShadow}
         >
           <Stack spacing={5}>
             <Flex justify="space-between" align="center" flexWrap="wrap" gap={2}>
-              <Heading size="sm">{t(group.titleKey)}</Heading>
-              <Badge variant="subtle" colorScheme="gray">
+              <Heading size="sm" color={groupTitleColor}>
+                {t(group.titleKey)}
+              </Heading>
+              <Badge variant="subtle" colorScheme="blue">
                 {group.settings.length}
               </Badge>
             </Flex>
@@ -241,9 +272,11 @@ export const Settings = () => {
                   <FormControl key={setting.key} isDisabled={isLoading}>
                     <Stack spacing={2}>
                       <Box>
-                        <FormLabel mb={1}>{t(setting.labelKey)}</FormLabel>
+                        <FormLabel mb={1} color={labelColor}>
+                          {t(setting.labelKey)}
+                        </FormLabel>
                         {requiresRestart ? (
-                          <Badge colorScheme="orange">
+                          <Badge colorScheme="orange" variant="subtle">
                             {t("settings.restartRequired")}
                           </Badge>
                         ) : null}
@@ -274,7 +307,9 @@ export const Settings = () => {
             >
               <Box>
                 <Heading size="md">{t("settings.title")}</Heading>
-                <Text color="gray.500">{t("settings.description")}</Text>
+                <Text color={helperTextColor}>
+                  {t("settings.description")}
+                </Text>
               </Box>
               <Button
                 colorScheme="blue"
