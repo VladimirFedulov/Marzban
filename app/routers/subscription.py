@@ -1,6 +1,6 @@
 import logging
 import re
-import time
+from time import monotonic
 from distutils.version import LooseVersion
 
 from fastapi import APIRouter, Depends, Header, Path, Request, Response
@@ -42,7 +42,7 @@ _HWID_CLEANUP_THROTTLE_SECONDS = 300
 
 
 def _should_cleanup_hwid_devices(user_id: int) -> bool:
-    now = time.monotonic()
+    now = monotonic()
     last_run = _HWID_CLEANUP_LAST_RUN.get(user_id)
     if last_run is not None and now - last_run < _HWID_CLEANUP_THROTTLE_SECONDS:
         return False
