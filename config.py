@@ -1,9 +1,22 @@
+import os
 import re
+from pathlib import Path
 
 from decouple import config
 from dotenv import load_dotenv
 
-load_dotenv()
+DEFAULT_ENV_PATH = Path(".env")
+HOST_ENV_DIR = Path("/var/lib/marzban")
+
+env_override = os.environ.get("MARZBAN_ENV_PATH")
+if env_override:
+    ENV_PATH = Path(env_override)
+elif HOST_ENV_DIR.is_dir():
+    ENV_PATH = HOST_ENV_DIR / ".env"
+else:
+    ENV_PATH = DEFAULT_ENV_PATH
+
+load_dotenv(ENV_PATH)
 
 
 SQLALCHEMY_DATABASE_URL = config("SQLALCHEMY_DATABASE_URL", default="sqlite:///db.sqlite3")
