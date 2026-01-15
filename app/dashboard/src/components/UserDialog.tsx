@@ -1088,11 +1088,21 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                         </CopyToClipboard>
                                       </HStack>
                                     </Td>
-                                    <Td minW="220px">
+                                    <Td minW="220px" maxW="320px">
                                       <Text>
-                                        {deviceInfo || "-"}
-                                        <br />
-                                        <Text as="span" fontSize="xs" color="gray.500">
+                                        <Text
+                                          as="span"
+                                          display="block"
+                                          whiteSpace="normal"
+                                          wordBreak="break-word"
+                                        >
+                                          {deviceInfo || "-"}
+                                        </Text>
+                                        <Text
+                                          as="span"
+                                          fontSize="xs"
+                                          color="gray.500"
+                                        >
                                           {t("userDialog.hwidDeviceUserAgent")}:{" "}
                                         </Text>
                                         {userAgent ? (
@@ -1104,12 +1114,18 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                               as="span"
                                               fontSize="xs"
                                               color="gray.500"
+                                              whiteSpace="normal"
+                                              wordBreak="break-word"
                                             >
                                               {formatUserAgent(userAgent)}
                                             </Text>
                                           </Tooltip>
                                         ) : (
-                                          <Text as="span" fontSize="xs" color="gray.500">
+                                          <Text
+                                            as="span"
+                                            fontSize="xs"
+                                            color="gray.500"
+                                          >
                                             -
                                           </Text>
                                         )}
