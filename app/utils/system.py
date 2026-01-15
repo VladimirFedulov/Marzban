@@ -9,10 +9,7 @@ import psutil
 import requests
 
 from app import scheduler
-from config import (
-    JOB_RECORD_REALTIME_BANDWIDTH_INTERVAL,
-    JOB_RECORD_REALTIME_BANDWIDTH_MAX_INSTANCES,
-)
+import config as config_module
 
 
 @dataclass
@@ -77,9 +74,9 @@ rt_bw = RealtimeBandwidth(
 # sample time is 2 seconds, values lower than this may not produce good results
 @scheduler.scheduled_job(
     "interval",
-    seconds=JOB_RECORD_REALTIME_BANDWIDTH_INTERVAL,
+    seconds=config_module.JOB_RECORD_REALTIME_BANDWIDTH_INTERVAL,
     coalesce=True,
-    max_instances=JOB_RECORD_REALTIME_BANDWIDTH_MAX_INSTANCES
+    max_instances=config_module.JOB_RECORD_REALTIME_BANDWIDTH_MAX_INSTANCES
 )
 def record_realtime_bandwidth() -> None:
     global rt_bw

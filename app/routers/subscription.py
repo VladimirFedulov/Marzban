@@ -10,10 +10,8 @@ from app.dependencies import get_validated_sub, validate_dates
 from app.models.user import SubscriptionUserResponse, UserResponse
 from app.subscription.share import encode_title, generate_subscription
 from app.templates import render_template
+import config as config_module
 from config import (
-    SUB_PROFILE_TITLE,
-    SUB_SUPPORT_URL,
-    SUB_UPDATE_INTERVAL,
     SUBSCRIPTION_PAGE_TEMPLATE,
     USE_CUSTOM_JSON_DEFAULT,
     USE_CUSTOM_JSON_FOR_HAPP,
@@ -22,9 +20,6 @@ from config import (
     USE_CUSTOM_JSON_FOR_V2RAYN,
     USE_CUSTOM_JSON_FOR_V2RAYNG,
     XRAY_SUBSCRIPTION_PATH,
-    HWID_DEVICE_LIMIT_ENABLED,
-    HWID_FALLBACK_DEVICE_LIMIT,
-    HWID_DEVICE_RETENTION_DAYS,
 )
 
 client_config = {
@@ -51,7 +46,7 @@ def enforce_hwid_device_limit(
         if dbuser.hwid_device_limit_enabled
         else "disabled"
         if dbuser.hwid_device_limit_enabled is not None
-        else HWID_DEVICE_LIMIT_ENABLED
+        else config_module.HWID_DEVICE_LIMIT_ENABLED
     )
     if mode == "disabled":
         return True
@@ -65,7 +60,7 @@ def enforce_hwid_device_limit(
     crud.delete_expired_user_hwid_devices(
         db=db,
         dbuser=dbuser,
-        retention_days=HWID_DEVICE_RETENTION_DAYS,
+        retention_days=config_module.HWID_DEVICE_RETENTION_DAYS,
     )
 
     if mode == "logging":
@@ -83,7 +78,7 @@ def enforce_hwid_device_limit(
     limit = (
         dbuser.hwid_device_limit
         if dbuser.hwid_device_limit is not None
-        else HWID_FALLBACK_DEVICE_LIMIT
+        else config_module.HWID_FALLBACK_DEVICE_LIMIT
     )
     if limit <= 0:
         return True
@@ -143,9 +138,11 @@ def user_subscription(
     response_headers = {
         "content-disposition": f'attachment; filename="{user.username}"',
         "profile-web-page-url": str(request.url),
-        "support-url": SUB_SUPPORT_URL,
-        "profile-title": encode_title(f"{SUB_PROFILE_TITLE} - {user.username}"),
-        "profile-update-interval": SUB_UPDATE_INTERVAL,
+        "support-url": config_module.SUB_SUPPORT_URL,
+        "profile-title": encode_title(
+            f"{config_module.SUB_PROFILE_TITLE} - {user.username}"
+        ),
+        "profile-update-interval": config_module.SUB_UPDATE_INTERVAL,
         "subscription-userinfo": "; ".join(
             f"{key}={val}"
             for key, val in get_subscription_user_info(user).items()
@@ -276,9 +273,11 @@ def user_subscription_with_client_type(
     response_headers = {
         "content-disposition": f'attachment; filename="{user.username}"',
         "profile-web-page-url": str(request.url),
-        "support-url": SUB_SUPPORT_URL,
-        "profile-title": encode_title(f"{SUB_PROFILE_TITLE} - {user.username}"),
-        "profile-update-interval": SUB_UPDATE_INTERVAL,
+        "support-url": config_module.SUB_SUPPORT_URL,
+        "profile-title": encode_title(
+            f"{config_module.SUB_PROFILE_TITLE} - {user.username}"
+        ),
+        "profile-update-interval": config_module.SUB_UPDATE_INTERVAL,
         "subscription-userinfo": "; ".join(
             f"{key}={val}"
             for key, val in get_subscription_user_info(user).items()

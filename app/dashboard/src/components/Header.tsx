@@ -12,6 +12,7 @@ import {
 } from "@chakra-ui/react";
 import {
   ArrowLeftOnRectangleIcon,
+  AdjustmentsHorizontalIcon,
   Bars3Icon,
   ChartPieIcon,
   Cog6ToothIcon,
@@ -36,6 +37,7 @@ import useGetUser from "hooks/useGetUser";
 
 type HeaderProps = {
   actions?: ReactNode;
+  title?: ReactNode;
 };
 const iconProps = {
   baseStyle: {
@@ -54,6 +56,7 @@ const HostsIcon = chakra(LinkIcon, iconProps);
 const NodesIcon = chakra(SquaresPlusIcon, iconProps);
 const NodesUsageIcon = chakra(ChartPieIcon, iconProps);
 const ResetUsageIcon = chakra(DocumentMinusIcon, iconProps);
+const AdminSettingsIcon = chakra(AdjustmentsHorizontalIcon, iconProps);
 const NotificationCircle = chakra(Box, {
   baseStyle: {
     bg: "yellow.500",
@@ -81,7 +84,7 @@ export const shouldShowDonation = (): boolean => {
   }
 };
 
-export const Header: FC<HeaderProps> = ({ actions }) => {
+export const Header: FC<HeaderProps> = ({ actions, title }) => {
   const { userData, getUserIsSuccess, getUserIsPending } = useGetUser();
 
   const isSudo = () => {
@@ -121,7 +124,7 @@ export const Header: FC<HeaderProps> = ({ actions }) => {
       position="relative"
     >
       <Text as="h1" fontWeight="semibold" fontSize="2xl">
-        {t("users")}
+        {title ?? t("users")}
       </Text>
       {showDonationNotif && (
         <NotificationCircle top="0" right="0" zIndex={9999} />
@@ -175,6 +178,15 @@ export const Header: FC<HeaderProps> = ({ actions }) => {
                   >
                     {t("resetAllUsage")}
                   </MenuItem>
+                  <Link to="/settings">
+                    <MenuItem
+                      maxW="170px"
+                      fontSize="sm"
+                      icon={<AdminSettingsIcon />}
+                    >
+                      {t("header.settings")}
+                    </MenuItem>
+                  </Link>
                 </>
               )}
               <Link to={DONATION_URL} target="_blank">

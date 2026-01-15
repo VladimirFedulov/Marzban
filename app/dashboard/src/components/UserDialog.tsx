@@ -1088,8 +1088,13 @@ export const UserDialog: FC<UserDialogProps> = () => {
                                         </CopyToClipboard>
                                       </HStack>
                                     </Td>
-                                    <Td minW="220px">
-                                      <Text>
+                                    <Td
+                                      minW="220px"
+                                      maxW="320px"
+                                      whiteSpace="normal"
+                                      wordBreak="break-word"
+                                    >
+                                      <Text whiteSpace="normal" wordBreak="break-word">
                                         {deviceInfo || "-"}
                                         <br />
                                         <Text as="span" fontSize="xs" color="gray.500">

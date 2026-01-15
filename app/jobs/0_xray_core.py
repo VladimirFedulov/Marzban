@@ -4,7 +4,7 @@ import traceback
 from app import app, logger, scheduler, xray
 from app.db import GetDB, crud
 from app.models.node import NodeStatus
-from config import JOB_CORE_HEALTH_CHECK_INTERVAL, JOB_CORE_HEALTH_CHECK_MAX_INSTANCES
+import config as config_module
 from xray_api import exc as xray_exc
 
 
@@ -73,9 +73,9 @@ def start_core():
         xray.operations.connect_node(node_id, config)
 
     scheduler.add_job(core_health_check, 'interval',
-                      seconds=JOB_CORE_HEALTH_CHECK_INTERVAL,
+                      seconds=config_module.JOB_CORE_HEALTH_CHECK_INTERVAL,
                       coalesce=True,
-                      max_instances=JOB_CORE_HEALTH_CHECK_MAX_INSTANCES)
+                      max_instances=config_module.JOB_CORE_HEALTH_CHECK_MAX_INSTANCES)
 
 
 @app.on_event("shutdown")
