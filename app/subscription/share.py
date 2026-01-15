@@ -16,15 +16,7 @@ from . import *
 if TYPE_CHECKING:
     from app.models.user import UserResponse
 
-from config import (
-    ACTIVE_STATUS_TEXT,
-    DISABLED_STATUS_TEXT,
-    EXPIRED_STATUS_TEXT,
-    LIMITED_STATUS_TEXT,
-    ONHOLD_STATUS_TEXT,
-    SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS,
-    SUBSCRIPTION_CUSTOM_NOTES,
-)
+import config as config_module
 
 SERVER_IP = get_public_ip()
 SERVER_IPV6 = get_public_ipv6()
@@ -37,13 +29,14 @@ STATUS_EMOJIS = {
     "on_hold": "🔌",
 }
 
-STATUS_TEXTS = {
-    "active": ACTIVE_STATUS_TEXT,
-    "expired": EXPIRED_STATUS_TEXT,
-    "limited": LIMITED_STATUS_TEXT,
-    "disabled": DISABLED_STATUS_TEXT,
-    "on_hold": ONHOLD_STATUS_TEXT,
-}
+def get_status_texts() -> dict[str, str]:
+    return {
+        "active": config_module.ACTIVE_STATUS_TEXT,
+        "expired": config_module.EXPIRED_STATUS_TEXT,
+        "limited": config_module.LIMITED_STATUS_TEXT,
+        "disabled": config_module.DISABLED_STATUS_TEXT,
+        "on_hold": config_module.ONHOLD_STATUS_TEXT,
+    }
 
 DEFAULT_HOST_REMARK = "🚀 Marz ({USERNAME}) [{PROTOCOL} - {TRANSPORT}]"
 DEFAULT_HOST_ADDRESS_TOKENS = {"{SERVER_IP}", "{SERVER_IPV6}"}
@@ -80,7 +73,7 @@ def generate_v2ray_links(
 def get_status_notes(status: str | object) -> list[str]:
     if hasattr(status, "value"):
         status = status.value
-    return SUBSCRIPTION_CUSTOM_NOTES.get(status, [])
+    return config_module.SUBSCRIPTION_CUSTOM_NOTES.get(status, [])
 
 
 def generate_clash_subscription(
@@ -286,7 +279,7 @@ def setup_format_variables(extra_data: dict) -> dict:
         usage_Percentage = "∞"
 
     status_emoji = STATUS_EMOJIS.get(extra_data.get("status")) or ""
-    status_template = STATUS_TEXTS.get(extra_data.get("status")) or ""
+    status_template = get_status_texts().get(extra_data.get("status")) or ""
 
     # Create a temporary dictionary with variables excluding STATUS_TEXT
     temp_vars = {
@@ -363,7 +356,7 @@ def process_inbounds_and_tags(
                 if custom_hosts:
                     hosts = (
                         custom_hosts
-                        if SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS
+                        if config_module.SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS
                         else custom_hosts + default_hosts
                     )
 
@@ -442,7 +435,7 @@ def process_inbounds_and_tags(
             entry = entries[idx]
             entry["remark"] = note.format_map(entry["format_variables"])
 
-        if SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS:
+        if config_module.SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS:
             target_index_set = set(target_indices)
             entries = [entry for idx, entry in enumerate(entries) if idx in target_index_set]
 

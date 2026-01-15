@@ -6,12 +6,12 @@ from app.models.user import UserDataLimitResetStrategy
 from app.models.admin import Admin
 from telebot.formatting import escape_html
 from app import logger
-from config import DISCORD_WEBHOOK_URL
+import config as config_module
 
 
 def send_webhooks(json_data, admin_webhook:str = None):
-    if DISCORD_WEBHOOK_URL:
-        send_webhook(json_data=json_data, webhook=DISCORD_WEBHOOK_URL)
+    if config_module.DISCORD_WEBHOOK_URL:
+        send_webhook(json_data=json_data, webhook=config_module.DISCORD_WEBHOOK_URL)
     if admin_webhook:
         send_webhook(json_data=json_data, webhook=admin_webhook)
 
