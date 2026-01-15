@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Query, Session, joinedload
 from sqlalchemy.sql.functions import coalesce
 
+from app import logger
 from app.db.models import (
     JWT,
     TLS,
@@ -674,13 +675,30 @@ def delete_expired_user_hwid_devices(
     if retention_days < 0:
         return 0
     cutoff = datetime.utcnow() - timedelta(days=retention_days)
-    deleted = db.query(UserHwidDevice).filter(
-        UserHwidDevice.user_id == dbuser.id,
-        UserHwidDevice.last_seen_at < cutoff,
-    ).delete(synchronize_session=False)
-    if deleted:
-        db.commit()
-    return deleted
+    max_retries = 5
+    for attempt in range(max_retries):
+        try:
+            deleted = db.query(UserHwidDevice).filter(
+                UserHwidDevice.user_id == dbuser.id,
+                UserHwidDevice.last_seen_at < cutoff,
+            ).delete(synchronize_session=False)
+            if deleted:
+                db.commit()
+            return deleted
+        except OperationalError as exc:
+            db.rollback()
+            is_deadlock = _is_deadlock_error(exc)
+            if not is_deadlock or attempt == max_retries - 1:
+                if is_deadlock:
+                    logger.warning(
+                        "Deadlock detected while deleting expired HWID devices for user %s; skipping cleanup.",
+                        dbuser.id,
+                    )
+                    return 0
+                raise
+            sleep(0.1 * (2 ** attempt))
+            continue
+    return 0
 
 
 def count_user_hwid_devices(db: Session, dbuser: User) -> int:
