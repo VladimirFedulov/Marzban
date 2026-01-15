@@ -38,7 +38,7 @@ client_config = {
 router = APIRouter(tags=['Subscription'], prefix=f'/{XRAY_SUBSCRIPTION_PATH}')
 logger = logging.getLogger(__name__)
 _HWID_CLEANUP_LAST_RUN: dict[int, float] = {}
-_HWID_CLEANUP_THROTTLE_SECONDS = 60
+_HWID_CLEANUP_THROTTLE_SECONDS = 300
 
 
 def _should_cleanup_hwid_devices(user_id: int) -> bool:
@@ -86,15 +86,21 @@ def enforce_hwid_device_limit(
             )
 
     if mode == "logging":
-        crud.upsert_user_hwid_device(
-            db=db,
-            dbuser=dbuser,
-            hwid=hwid,
-            device_os=request.headers.get("x-device-os"),
-            device_model=request.headers.get("x-device-model"),
-            device_os_version=request.headers.get("x-ver-os"),
-            user_agent=user_agent,
-        )
+        try:
+            crud.upsert_user_hwid_device(
+                db=db,
+                dbuser=dbuser,
+                hwid=hwid,
+                device_os=request.headers.get("x-device-os"),
+                device_model=request.headers.get("x-device-model"),
+                device_os_version=request.headers.get("x-ver-os"),
+                user_agent=user_agent,
+            )
+        except OperationalError:
+            logger.warning(
+                "Failed to log HWID device for user %s due to database error; allowing subscription.",
+                dbuser.id,
+            )
         return True
 
     limit = (
@@ -111,15 +117,21 @@ def enforce_hwid_device_limit(
         if devices_count >= limit:
             return False
 
-    crud.upsert_user_hwid_device(
-        db=db,
-        dbuser=dbuser,
-        hwid=hwid,
-        device_os=request.headers.get("x-device-os"),
-        device_model=request.headers.get("x-device-model"),
-        device_os_version=request.headers.get("x-ver-os"),
-        user_agent=user_agent,
-    )
+    try:
+        crud.upsert_user_hwid_device(
+            db=db,
+            dbuser=dbuser,
+            hwid=hwid,
+            device_os=request.headers.get("x-device-os"),
+            device_model=request.headers.get("x-device-model"),
+            device_os_version=request.headers.get("x-ver-os"),
+            user_agent=user_agent,
+        )
+    except OperationalError:
+        logger.warning(
+            "Failed to store HWID device for user %s due to database error; allowing subscription.",
+            dbuser.id,
+        )
     return True
 
 
