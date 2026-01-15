@@ -6,7 +6,7 @@ from decouple import config
 from dotenv import load_dotenv
 
 DEFAULT_ENV_PATH = Path(".env")
-HOST_ENV_DIR = Path("/var/lib/marzban")
+HOST_ENV_DIR = Path("/opt/marzban")
 
 env_override = os.environ.get("MARZBAN_ENV_PATH")
 if env_override:
