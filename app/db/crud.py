@@ -674,13 +674,23 @@ def delete_expired_user_hwid_devices(
     if retention_days < 0:
         return 0
     cutoff = datetime.utcnow() - timedelta(days=retention_days)
-    deleted = db.query(UserHwidDevice).filter(
-        UserHwidDevice.user_id == dbuser.id,
-        UserHwidDevice.last_seen_at < cutoff,
-    ).delete(synchronize_session=False)
-    if deleted:
-        db.commit()
-    return deleted
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            deleted = db.query(UserHwidDevice).filter(
+                UserHwidDevice.user_id == dbuser.id,
+                UserHwidDevice.last_seen_at < cutoff,
+            ).delete(synchronize_session=False)
+            if deleted:
+                db.commit()
+            return deleted
+        except OperationalError as exc:
+            db.rollback()
+            if not _is_deadlock_error(exc) or attempt == max_retries - 1:
+                raise
+            sleep(0.05 * (attempt + 1))
+            continue
+    raise RuntimeError("Failed to delete expired user HWID devices after retrying.")
 
 
 def count_user_hwid_devices(db: Session, dbuser: User) -> int:
