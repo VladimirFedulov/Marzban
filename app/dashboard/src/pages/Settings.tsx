@@ -234,7 +234,10 @@ export const Settings = () => {
                   >
                     <Box flex="1" minW="240px">
                       <FormLabel mb={1}>{t(setting.labelKey)}</FormLabel>
-                      {data?.metadata?.[setting.key]?.requires_restart ? (
+                      {(
+                        data?.metadata?.[setting.key]?.requires_restart ??
+                        setting.requiresRestart
+                      ) ? (
                         <Badge colorScheme="orange">
                           {t("settings.restartRequired")}
                         </Badge>

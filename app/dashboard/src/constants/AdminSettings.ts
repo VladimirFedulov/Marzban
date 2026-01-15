@@ -11,6 +11,7 @@ export type SettingDefinition = {
   inputType: SettingInputType;
   options?: SettingOption[];
   delimiter?: string;
+  requiresRestart?: boolean;
 };
 
 export type SettingsGroup = {
@@ -222,61 +223,73 @@ export const settingsGroups: SettingsGroup[] = [
         key: "JOB_CORE_HEALTH_CHECK_INTERVAL",
         labelKey: "settings.jobCoreHealthCheckInterval",
         inputType: "number",
+        requiresRestart: true,
       },
       {
         key: "JOB_RECORD_NODE_USAGES_INTERVAL",
         labelKey: "settings.jobRecordNodeUsagesInterval",
         inputType: "number",
+        requiresRestart: true,
       },
       {
         key: "JOB_RECORD_USER_USAGES_INTERVAL",
         labelKey: "settings.jobRecordUserUsagesInterval",
         inputType: "number",
+        requiresRestart: true,
       },
       {
         key: "JOB_REVIEW_USERS_INTERVAL",
         labelKey: "settings.jobReviewUsersInterval",
         inputType: "number",
+        requiresRestart: true,
       },
       {
         key: "JOB_SEND_NOTIFICATIONS_INTERVAL",
         labelKey: "settings.jobSendNotificationsInterval",
         inputType: "number",
+        requiresRestart: true,
       },
       {
         key: "JOB_RECORD_REALTIME_BANDWIDTH_INTERVAL",
         labelKey: "settings.jobRecordRealtimeBandwidthInterval",
         inputType: "number",
+        requiresRestart: true,
       },
       {
         key: "JOB_RECORD_USER_USAGES_WORKERS",
         labelKey: "settings.jobRecordUserUsagesWorkers",
         inputType: "number",
+        requiresRestart: true,
       },
       {
         key: "JOB_CORE_HEALTH_CHECK_MAX_INSTANCES",
         labelKey: "settings.jobCoreHealthCheckMaxInstances",
         inputType: "number",
+        requiresRestart: true,
       },
       {
         key: "JOB_RECORD_USER_USAGES_MAX_INSTANCES",
         labelKey: "settings.jobRecordUserUsagesMaxInstances",
         inputType: "number",
+        requiresRestart: true,
       },
       {
         key: "JOB_RECORD_NODE_USAGES_MAX_INSTANCES",
         labelKey: "settings.jobRecordNodeUsagesMaxInstances",
         inputType: "number",
+        requiresRestart: true,
       },
       {
         key: "JOB_RECORD_REALTIME_BANDWIDTH_MAX_INSTANCES",
         labelKey: "settings.jobRecordRealtimeBandwidthMaxInstances",
         inputType: "number",
+        requiresRestart: true,
       },
       {
         key: "JOB_HWID_DEVICE_CLEANUP_INTERVAL",
         labelKey: "settings.jobHwidDeviceCleanupInterval",
         inputType: "number",
+        requiresRestart: true,
       },
     ],
   },
