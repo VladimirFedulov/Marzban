@@ -5,7 +5,7 @@ from typing import Type
 
 from pydantic import BaseModel
 
-from config import WEBHOOK_ADDRESS
+import config as config_module
 from app.models.admin import Admin
 from app.models.user import UserResponse
 
@@ -107,5 +107,5 @@ class UserSubscriptionRevoked(UserNotification):
 
 
 def notify(message: Type[Notification]) -> None:
-    if WEBHOOK_ADDRESS:
+    if config_module.WEBHOOK_ADDRESS:
         queue.append(message)

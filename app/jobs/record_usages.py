@@ -14,14 +14,7 @@ from sqlalchemy.sql.dml import Insert
 from app import logger, scheduler, xray
 from app.db import GetDB
 from app.db.models import Admin, NodeUsage, NodeUserUsage, System, User
-from config import (
-    DISABLE_RECORDING_NODE_USAGE,
-    JOB_RECORD_USER_USAGES_WORKERS,
-    JOB_RECORD_NODE_USAGES_MAX_INSTANCES,
-    JOB_RECORD_NODE_USAGES_INTERVAL,
-    JOB_RECORD_USER_USAGES_MAX_INSTANCES,
-    JOB_RECORD_USER_USAGES_INTERVAL,
-)
+import config as config_module
 from xray_api import XRay as XRayAPI
 from xray_api import exc as xray_exc
 
@@ -177,7 +170,7 @@ def record_user_usages():
             logger.warning(f"Skipping node {node_id} usage collection: {exc}")
 
     with ThreadPoolExecutor(
-            max_workers=JOB_RECORD_USER_USAGES_WORKERS) as executor:
+            max_workers=config_module.JOB_RECORD_USER_USAGES_WORKERS) as executor:
         futures = {
             node_id: executor.submit(get_users_stats, api)
             for node_id, api in api_instances.items()
@@ -249,7 +242,7 @@ def record_node_usages():
             logger.warning(f"Skipping node {node_id} outbound usage collection: {exc}")
 
     with ThreadPoolExecutor(
-            max_workers=JOB_RECORD_USER_USAGES_WORKERS) as executor:
+            max_workers=config_module.JOB_RECORD_USER_USAGES_WORKERS) as executor:
         futures = {
             node_id: executor.submit(get_outbounds_stats, api)
             for node_id, api in api_instances.items()
@@ -274,7 +267,7 @@ def record_node_usages():
                                      downlink=System.downlink + total_down)
         safe_execute(db, stmt)
 
-    if DISABLE_RECORDING_NODE_USAGE:
+    if config_module.DISABLE_RECORDING_NODE_USAGE:
         return
 
     for node_id, params in api_params.items():
@@ -283,11 +276,11 @@ def record_node_usages():
 
 scheduler.add_job(record_user_usages,
                   'interval',
-                  seconds=JOB_RECORD_USER_USAGES_INTERVAL,
+                  seconds=config_module.JOB_RECORD_USER_USAGES_INTERVAL,
                   coalesce=True,
-                  max_instances=JOB_RECORD_USER_USAGES_MAX_INSTANCES)
+                  max_instances=config_module.JOB_RECORD_USER_USAGES_MAX_INSTANCES)
 scheduler.add_job(record_node_usages,
                   'interval',
-                  seconds=JOB_RECORD_NODE_USAGES_INTERVAL,
+                  seconds=config_module.JOB_RECORD_NODE_USAGES_INTERVAL,
                   coalesce=True,
-                  max_instances=JOB_RECORD_NODE_USAGES_MAX_INSTANCES)
+                  max_instances=config_module.JOB_RECORD_NODE_USAGES_MAX_INSTANCES)

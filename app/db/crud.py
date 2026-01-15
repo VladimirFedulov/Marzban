@@ -47,7 +47,7 @@ from app.models.user import (
 )
 from app.models.user_template import UserTemplateCreate, UserTemplateModify
 from app.utils.helpers import calculate_expiration_days, calculate_usage_percent
-from config import NOTIFY_DAYS_LEFT, NOTIFY_REACHED_USAGE_PERCENT, USERS_AUTODELETE_DAYS
+import config as config_module
 
 
 def add_default_host(db: Session, inbound: ProxyInbound):
@@ -482,7 +482,9 @@ def update_user(db: Session, dbuser: User, modify: UserModify) -> User:
                 if dbuser.status != UserStatus.on_hold:
                     dbuser.status = UserStatus.active
 
-                for percent in sorted(NOTIFY_REACHED_USAGE_PERCENT, reverse=True):
+                for percent in sorted(
+                    config_module.NOTIFY_REACHED_USAGE_PERCENT, reverse=True
+                ):
                     if not dbuser.data_limit or (calculate_usage_percent(
                             dbuser.used_traffic, dbuser.data_limit) < percent):
                         reminder = get_notification_reminder(db, dbuser.id, ReminderType.data_usage, threshold=percent)
@@ -497,7 +499,7 @@ def update_user(db: Session, dbuser: User, modify: UserModify) -> User:
         if dbuser.status in [UserStatus.active, UserStatus.expired]:
             if not dbuser.expire or dbuser.expire > datetime.utcnow().timestamp():
                 dbuser.status = UserStatus.active
-                for days_left in sorted(NOTIFY_DAYS_LEFT):
+                for days_left in sorted(config_module.NOTIFY_DAYS_LEFT):
                     if not dbuser.expire or (calculate_expiration_days(
                             dbuser.expire) > days_left):
                         reminder = get_notification_reminder(
@@ -900,7 +902,9 @@ def autodelete_expired_users(db: Session,
         else [UserStatus.expired, UserStatus.limited]
     )
 
-    auto_delete = coalesce(User.auto_delete_in_days, USERS_AUTODELETE_DAYS)
+    auto_delete = coalesce(
+        User.auto_delete_in_days, config_module.USERS_AUTODELETE_DAYS
+    )
 
     query = db.query(
         User, auto_delete,  # Use global auto-delete days as fallback
