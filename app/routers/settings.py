@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 from dotenv import set_key
@@ -12,7 +11,7 @@ from app.utils import responses
 
 router = APIRouter(tags=["Settings"], prefix="/api", responses={401: responses._401})
 
-ENV_PATH = Path(".env")
+ENV_PATH = config_module.ENV_PATH
 
 
 @dataclass(frozen=True)
@@ -186,6 +185,7 @@ def update_settings(
     payload: SettingsPayload,
     admin: Admin = Depends(Admin.check_sudo_admin),
 ) -> dict:
+    ENV_PATH.parent.mkdir(parents=True, exist_ok=True)
     ENV_PATH.touch(exist_ok=True)
     updated_values = {}
     for key, raw_value in payload.values.items():
