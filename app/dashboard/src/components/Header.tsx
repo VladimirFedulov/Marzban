@@ -99,6 +99,7 @@ export const Header: FC<HeaderProps> = ({ actions, title }) => {
     onResetAllUsage,
     onEditingNodes,
     onShowingNodesUsage,
+    onEditingSettings,
   } = useDashboard();
   const { t } = useTranslation();
   const { colorMode, toggleColorMode } = useColorMode();
@@ -178,15 +179,14 @@ export const Header: FC<HeaderProps> = ({ actions, title }) => {
                   >
                     {t("resetAllUsage")}
                   </MenuItem>
-                  <Link to="/settings">
-                    <MenuItem
-                      maxW="170px"
-                      fontSize="sm"
-                      icon={<AdminSettingsIcon />}
-                    >
-                      {t("header.settings")}
-                    </MenuItem>
-                  </Link>
+                  <MenuItem
+                    maxW="170px"
+                    fontSize="sm"
+                    icon={<AdminSettingsIcon />}
+                    onClick={onEditingSettings.bind(null, true)}
+                  >
+                    {t("header.settings")}
+                  </MenuItem>
                 </>
               )}
               <Link to={DONATION_URL} target="_blank">
