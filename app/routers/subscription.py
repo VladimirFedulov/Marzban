@@ -1,5 +1,6 @@
 import re
 from distutils.version import LooseVersion
+from time import time
 
 from fastapi import APIRouter, Depends, Header, Path, Request, Response
 from fastapi.responses import HTMLResponse
@@ -41,6 +42,17 @@ client_config = {
 }
 
 router = APIRouter(tags=['Subscription'], prefix=f'/{XRAY_SUBSCRIPTION_PATH}')
+_HWID_CLEANUP_CACHE: dict[int, float] = {}
+_HWID_CLEANUP_TTL_SECONDS = 300
+
+
+def _should_cleanup_hwid_devices(user_id: int) -> bool:
+    last_cleanup = _HWID_CLEANUP_CACHE.get(user_id)
+    now = time()
+    if last_cleanup is not None and now - last_cleanup < _HWID_CLEANUP_TTL_SECONDS:
+        return False
+    _HWID_CLEANUP_CACHE[user_id] = now
+    return True
 
 
 def enforce_hwid_device_limit(
@@ -65,17 +77,18 @@ def enforce_hwid_device_limit(
             return True
         return False
 
-    try:
-        crud.delete_expired_user_hwid_devices(
-            db=db,
-            dbuser=dbuser,
-            retention_days=HWID_DEVICE_RETENTION_DAYS,
-        )
-    except OperationalError:
-        logger.warning(
-            "Failed to cleanup expired HWID devices for user %s due to database error; allowing subscription.",
-            dbuser.id,
-        )
+    if _should_cleanup_hwid_devices(dbuser.id):
+        try:
+            crud.delete_expired_user_hwid_devices(
+                db=db,
+                dbuser=dbuser,
+                retention_days=HWID_DEVICE_RETENTION_DAYS,
+            )
+        except OperationalError:
+            logger.warning(
+                "Failed to cleanup expired HWID devices for user %s due to database error; allowing subscription.",
+                dbuser.id,
+            )
 
     if mode == "logging":
         try:
