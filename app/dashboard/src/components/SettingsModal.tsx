@@ -17,8 +17,11 @@ import {
   SimpleGrid,
   Stack,
   Switch,
+  Tag,
   Text,
   Textarea,
+  Wrap,
+  WrapItem,
   useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
@@ -83,6 +86,39 @@ export const SettingsModal = () => {
   const inputFocusBorder = useColorModeValue("blue.400", "blue.300");
   const location = useLocation();
   const navigate = useNavigate();
+  const envOnlySettings = [
+    "DASHBOARD_PATH",
+    "XRAY_JSON",
+    "XRAY_EXECUTABLE_PATH",
+    "XRAY_ASSETS_PATH",
+    "XRAY_EXCLUDE_INBOUND_TAGS",
+    "XRAY_FALLBACKS_INBOUND_TAG",
+    "UVICORN_HOST",
+    "UVICORN_PORT",
+    "UVICORN_UDS",
+    "UVICORN_SSL_CERTFILE",
+    "UVICORN_SSL_KEYFILE",
+    "UVICORN_SSL_CA_TYPE",
+    "ALLOWED_ORIGINS",
+    "SQLALCHEMY_DATABASE_URL",
+    "SQLALCHEMY_POOL_SIZE",
+    "SQLIALCHEMY_MAX_OVERFLOW",
+    "TELEGRAM_API_TOKEN",
+    "TELEGRAM_ADMIN_ID",
+    "TELEGRAM_LOGGER_CHANNEL_ID",
+    "TELEGRAM_LOGGER_TOPIC_ID",
+    "TELEGRAM_DEFAULT_VLESS_FLOW",
+    "TELEGRAM_PROXY_URL",
+    "LOGIN_NOTIFY_WHITE_LIST",
+    "WEBHOOK_SECRET",
+    "VITE_BASE_API",
+    "JWT_ACCESS_TOKEN_EXPIRE_MINUTES",
+    "DEBUG",
+    "DOCS",
+    "DISABLE_RECORDING_NODE_USAGE",
+    "SUDO_USERNAME",
+    "SUDO_PASSWORD",
+  ];
 
   const { data, isLoading } = useQuery<SettingsResponse>({
     queryKey: ["settings"],
@@ -272,6 +308,11 @@ export const SettingsModal = () => {
                 {group.settings.length}
               </Badge>
             </Flex>
+            {group.descriptionKey ? (
+              <Text fontSize="sm" color={helperTextColor}>
+                {t(group.descriptionKey)}
+              </Text>
+            ) : null}
             <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={5}>
               {group.settings.map((setting) => {
                 const requiresRestart =
@@ -318,7 +359,7 @@ export const SettingsModal = () => {
     >
       <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
       <ModalContent mx="3" w="full" maxW="6xl">
-        <ModalHeader pb={2}>
+        <ModalHeader pb={2} pr={{ base: 12, md: 16 }}>
           <Flex
             direction={{ base: "column", md: "row" }}
             align={{ base: "flex-start", md: "center" }}
@@ -344,15 +385,32 @@ export const SettingsModal = () => {
         <ModalBody pb={6} pt={4}>
           <Stack spacing={6}>
             <Box>{renderGroup(settingsGroups)}</Box>
-            <Flex justify="flex-end">
-              <Button
-                colorScheme="blue"
-                onClick={handleSave}
-                isLoading={isSaving}
-              >
-                {t("settings.save")}
-              </Button>
-            </Flex>
+            <Box
+              borderWidth="1px"
+              borderRadius="xl"
+              p={{ base: 5, md: 6 }}
+              bg={cardBg}
+              borderColor={cardBorder}
+              boxShadow={cardShadow}
+            >
+              <Stack spacing={3}>
+                <Heading size="sm" color={groupTitleColor}>
+                  {t("settings.envOnlyTitle")}
+                </Heading>
+                <Text fontSize="sm" color={helperTextColor}>
+                  {t("settings.envOnlyDescription")}
+                </Text>
+                <Wrap spacing={2}>
+                  {envOnlySettings.map((setting) => (
+                    <WrapItem key={setting}>
+                      <Tag size="sm" variant="subtle" colorScheme="gray">
+                        {setting}
+                      </Tag>
+                    </WrapItem>
+                  ))}
+                </Wrap>
+              </Stack>
+            </Box>
           </Stack>
         </ModalBody>
       </ModalContent>
