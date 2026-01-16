@@ -15,6 +15,7 @@ from app.settings import (
     format_env_value,
     get_db_settings,
     parse_setting_value,
+    refresh_v2ray_subscription_templates,
     upsert_db_settings,
 )
 from app.utils import responses
@@ -81,6 +82,8 @@ def update_settings(
                 "limited": config_module.SUBSCRIPTION_CUSTOM_NOTES_LIMITED,
                 "disabled": config_module.SUBSCRIPTION_CUSTOM_NOTES_DISABLED,
             }
+        if key == "V2RAY_TEMPLATE_MAPPING":
+            refresh_v2ray_subscription_templates()
         updated_values[key] = parsed_value
 
     upsert_db_settings(db, updated_values)
