@@ -1,5 +1,7 @@
 import re
+from datetime import datetime, timedelta
 from distutils.version import LooseVersion
+from math import ceil
 from time import time
 
 from fastapi import APIRouter, Depends, Header, Path, Request, Response
@@ -11,7 +13,7 @@ from app import logger
 from app.db import Session, crud, get_db
 from app.db.models import User
 from app.dependencies import get_validated_sub, validate_dates
-from app.models.user import SubscriptionUserResponse, UserResponse
+from app.models.user import SubscriptionUserResponse, UserDataLimitResetStrategy, UserResponse
 from app.subscription.share import encode_title, generate_subscription
 import config as config_module
 from app.templates import render_template
@@ -30,6 +32,12 @@ client_config = {
 router = APIRouter(tags=['Subscription'], prefix=f'/{XRAY_SUBSCRIPTION_PATH}')
 _HWID_CLEANUP_CACHE: dict[int, float] = {}
 _HWID_CLEANUP_TTL_SECONDS = 300
+_RESET_STRATEGY_TO_DAYS = {
+    UserDataLimitResetStrategy.day.value: 1,
+    UserDataLimitResetStrategy.week.value: 7,
+    UserDataLimitResetStrategy.month.value: 30,
+    UserDataLimitResetStrategy.year.value: 365,
+}
 
 
 def _should_cleanup_hwid_devices(user_id: int) -> bool:
@@ -136,6 +144,24 @@ def get_subscription_user_info(user: UserResponse) -> dict:
     }
 
 
+def get_next_reset_info(dbuser: User) -> tuple[str | int, datetime | None]:
+    reset_strategy = dbuser.data_limit_reset_strategy
+    if isinstance(reset_strategy, UserDataLimitResetStrategy):
+        reset_strategy = reset_strategy.value
+    if not reset_strategy or reset_strategy == UserDataLimitResetStrategy.no_reset.value:
+        return "∞", None
+
+    reset_days = _RESET_STRATEGY_TO_DAYS.get(reset_strategy)
+    if not reset_days:
+        return "∞", None
+
+    last_reset_time = dbuser.last_traffic_reset_time
+    next_reset_at = last_reset_time + timedelta(days=reset_days)
+    seconds_left = (next_reset_at - datetime.utcnow()).total_seconds()
+    days_to_next_reset = max(0, ceil(seconds_left / (24 * 3600)))
+    return days_to_next_reset, next_reset_at
+
+
 @router.get("/{token}/")
 @router.get("/{token}", include_in_schema=False)
 def user_subscription(
@@ -148,10 +174,15 @@ def user_subscription(
     accept_header = request.headers.get("Accept", "")
     if "text/html" in accept_header:
         user: UserResponse = UserResponse.model_validate(dbuser)
+        days_to_next_reset, next_reset_at = get_next_reset_info(dbuser)
         return HTMLResponse(
             render_template(
                 config_module.SUBSCRIPTION_PAGE_TEMPLATE,
-                {"user": user}
+                {
+                    "user": user,
+                    "days_to_next_reset": days_to_next_reset,
+                    "next_reset_at": next_reset_at,
+                },
             )
         )
 
