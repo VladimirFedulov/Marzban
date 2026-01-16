@@ -58,6 +58,15 @@ class AdminUsageLogs(Base):
     reset_at = Column(DateTime, default=datetime.utcnow)
 
 
+class AppSetting(Base):
+    __tablename__ = "app_settings"
+
+    id = Column(Integer, primary_key=True)
+    key = Column(String(128), nullable=False, unique=True, index=True)
+    value = Column(JSON, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class User(Base):
     __tablename__ = "users"
 
