@@ -1,14 +1,20 @@
 import importlib.util
+import logging
+import time
 from os.path import dirname
 from threading import Thread
+from requests.exceptions import ConnectionError
 from config import TELEGRAM_API_TOKEN, TELEGRAM_PROXY_URL
 from app import app
 from telebot import TeleBot, apihelper
 
 
+logger = logging.getLogger(__name__)
+
 bot = None
 if TELEGRAM_API_TOKEN:
-    apihelper.proxy = {'http': TELEGRAM_PROXY_URL, 'https': TELEGRAM_PROXY_URL}
+    if TELEGRAM_PROXY_URL:
+        apihelper.proxy = {'http': TELEGRAM_PROXY_URL, 'https': TELEGRAM_PROXY_URL}
     bot = TeleBot(TELEGRAM_API_TOKEN)
 
 handler_names = ["admin", "report", "user"]
@@ -24,7 +30,22 @@ def start_bot():
         from app.telegram import utils # setup custom handlers
         utils.setup()
 
-        thread = Thread(target=bot.infinity_polling, daemon=True)
+        def polling_loop():
+            while True:
+                try:
+                    bot.infinity_polling()
+                except (ConnectionError, OSError) as exc:
+                    logger.warning(
+                        "Telegram bot polling failed due to network error; retrying in 30s.",
+                        exc_info=exc,
+                    )
+                except Exception:
+                    logger.exception(
+                        "Telegram bot polling stopped unexpectedly; retrying in 30s."
+                    )
+                time.sleep(30)
+
+        thread = Thread(target=polling_loop, daemon=True)
         thread.start()
 
 
