@@ -506,10 +506,10 @@ export const UserDialog: FC<UserDialogProps> = () => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="3xl">
+    <Modal isOpen={isOpen} onClose={onClose} size="6xl">
       <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
       <FormProvider {...form}>
-        <ModalContent mx="3">
+        <ModalContent mx="3" maxW="90vw" maxH="90vh">
           <form onSubmit={form.handleSubmit(submit)}>
             <ModalHeader pt={6}>
               <HStack gap={2}>
@@ -528,7 +528,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
               </HStack>
             </ModalHeader>
             <ModalCloseButton mt={3} disabled={disabled} />
-            <ModalBody>
+            <ModalBody overflowY="auto">
               <Grid
                 templateColumns={{
                   base: "repeat(1, 1fr)",
