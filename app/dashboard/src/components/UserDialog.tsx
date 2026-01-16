@@ -9,8 +9,6 @@ import {
   FormErrorMessage,
   FormHelperText,
   FormLabel,
-  Grid,
-  GridItem,
   HStack,
   IconButton,
   Modal,
@@ -31,6 +29,7 @@ import {
   Tr,
   Spinner,
   Switch,
+  SimpleGrid,
   Textarea,
   Tooltip,
   VStack,
@@ -529,14 +528,8 @@ export const UserDialog: FC<UserDialogProps> = () => {
             </ModalHeader>
             <ModalCloseButton mt={3} disabled={disabled} />
             <ModalBody overflowY="auto">
-              <Grid
-                templateColumns={{
-                  base: "repeat(1, 1fr)",
-                  md: "repeat(2, 1fr)",
-                }}
-                gap={3}
-              >
-                <GridItem>
+              <SimpleGrid minChildWidth="600px" spacing={3}>
+                <Box>
                   <VStack justifyContent="space-between">
                     <Flex
                       flexDirection="column"
@@ -840,8 +833,8 @@ export const UserDialog: FC<UserDialogProps> = () => {
                       </Alert>
                     )}
                   </VStack>
-                </GridItem>
-                <GridItem>
+                </Box>
+                <Box>
                   <FormControl
                     isInvalid={
                       !!form.formState.errors.selected_proxies?.message
@@ -885,8 +878,8 @@ export const UserDialog: FC<UserDialogProps> = () => {
                       )}
                     </FormErrorMessage>
                   </FormControl>
-                </GridItem>
-              </Grid>
+                </Box>
+              </SimpleGrid>
               <Box mt={4} w="full">
                 <VStack align="stretch" spacing={3}>
                   <FormControl>
