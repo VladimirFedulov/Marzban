@@ -291,7 +291,11 @@ def user_subscription_info(
     """Retrieves detailed information about the user's subscription."""
     if not enforce_hwid_device_limit(db, dbuser, request, user_agent):
         return Response(status_code=200, content="")
-    return dbuser
+    days_to_next_reset, next_reset_at = get_next_reset_info(dbuser)
+    response = SubscriptionUserResponse.model_validate(dbuser)
+    return response.model_copy(
+        update={"days_to_next_reset": days_to_next_reset, "next_reset_at": next_reset_at}
+    )
 
 
 @router.get("/{token}/usage")
