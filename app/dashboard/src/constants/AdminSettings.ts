@@ -221,6 +221,126 @@ export const settingsGroups: SettingsGroup[] = [
     ],
   },
   {
+    id: "templates",
+    titleKey: "settings.groups.templates",
+    descriptionKey: "settings.groups.templatesDescription",
+    settings: [
+      {
+        key: "CUSTOM_TEMPLATES_DIRECTORY",
+        labelKey: "settings.customTemplatesDirectory",
+        inputType: "text",
+      },
+      {
+        key: "SUBSCRIPTION_PAGE_TEMPLATE",
+        labelKey: "settings.subscriptionPageTemplate",
+        inputType: "text",
+      },
+      {
+        key: "HOME_PAGE_TEMPLATE",
+        labelKey: "settings.homePageTemplate",
+        inputType: "text",
+      },
+      {
+        key: "CLASH_SUBSCRIPTION_TEMPLATE",
+        labelKey: "settings.clashSubscriptionTemplate",
+        inputType: "text",
+      },
+      {
+        key: "CLASH_SETTINGS_TEMPLATE",
+        labelKey: "settings.clashSettingsTemplate",
+        inputType: "text",
+      },
+      {
+        key: "SINGBOX_SUBSCRIPTION_TEMPLATE",
+        labelKey: "settings.singboxSubscriptionTemplate",
+        inputType: "text",
+      },
+      {
+        key: "SINGBOX_SETTINGS_TEMPLATE",
+        labelKey: "settings.singboxSettingsTemplate",
+        inputType: "text",
+      },
+      {
+        key: "MUX_TEMPLATE",
+        labelKey: "settings.muxTemplate",
+        inputType: "text",
+      },
+      {
+        key: "V2RAY_SUBSCRIPTION_TEMPLATE",
+        labelKey: "settings.v2raySubscriptionTemplate",
+        inputType: "text",
+      },
+      {
+        key: "V2RAY_SETTINGS_TEMPLATE",
+        labelKey: "settings.v2raySettingsTemplate",
+        inputType: "text",
+      },
+      {
+        key: "V2RAY_TEMPLATE_MAPPING",
+        labelKey: "settings.v2rayTemplateMapping",
+        inputType: "text",
+      },
+      {
+        key: "EXTERNAL_CONFIG",
+        labelKey: "settings.externalConfig",
+        inputType: "text",
+      },
+    ],
+  },
+  {
+    id: "subscription-advanced",
+    titleKey: "settings.groups.subscriptionAdvanced",
+    settings: [
+      {
+        key: "XRAY_SUBSCRIPTION_URL_PREFIX",
+        labelKey: "settings.xraySubscriptionUrlPrefix",
+        inputType: "text",
+      },
+      {
+        key: "XRAY_SUBSCRIPTION_PATH",
+        labelKey: "settings.xraySubscriptionPath",
+        inputType: "text",
+      },
+    ],
+  },
+  {
+    id: "client-json",
+    titleKey: "settings.groups.clientJson",
+    descriptionKey: "settings.groups.clientJsonDescription",
+    settings: [
+      {
+        key: "USE_CUSTOM_JSON_DEFAULT",
+        labelKey: "settings.useCustomJsonDefault",
+        inputType: "boolean",
+      },
+      {
+        key: "USE_CUSTOM_JSON_FOR_V2RAYN",
+        labelKey: "settings.useCustomJsonForV2rayn",
+        inputType: "boolean",
+      },
+      {
+        key: "USE_CUSTOM_JSON_FOR_V2RAYNG",
+        labelKey: "settings.useCustomJsonForV2rayng",
+        inputType: "boolean",
+      },
+      {
+        key: "USE_CUSTOM_JSON_FOR_STREISAND",
+        labelKey: "settings.useCustomJsonForStreisand",
+        inputType: "boolean",
+      },
+      {
+        key: "USE_CUSTOM_JSON_FOR_HAPP",
+        labelKey: "settings.useCustomJsonForHapp",
+        inputType: "boolean",
+      },
+      {
+        key: "USE_CUSTOM_JSON_FOR_NPVTUNNEL",
+        labelKey: "settings.useCustomJsonForNpvtunnel",
+        inputType: "boolean",
+      },
+    ],
+  },
+  {
     id: "jobs",
     titleKey: "settings.groups.jobs",
     settings: [
