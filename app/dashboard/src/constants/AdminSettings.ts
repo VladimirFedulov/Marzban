@@ -13,6 +13,7 @@ export type SettingOption = {
 export type SettingDefinition = {
   key: string;
   labelKey: string;
+  descriptionKey?: string;
   inputType: SettingInputType;
   options?: SettingOption[];
   delimiter?: string;
@@ -228,61 +229,73 @@ export const settingsGroups: SettingsGroup[] = [
       {
         key: "CUSTOM_TEMPLATES_DIRECTORY",
         labelKey: "settings.customTemplatesDirectory",
+        descriptionKey: "settings.customTemplatesDirectoryHelp",
         inputType: "text",
       },
       {
         key: "SUBSCRIPTION_PAGE_TEMPLATE",
         labelKey: "settings.subscriptionPageTemplate",
+        descriptionKey: "settings.subscriptionPageTemplateHelp",
         inputType: "text",
       },
       {
         key: "HOME_PAGE_TEMPLATE",
         labelKey: "settings.homePageTemplate",
+        descriptionKey: "settings.homePageTemplateHelp",
         inputType: "text",
       },
       {
         key: "CLASH_SUBSCRIPTION_TEMPLATE",
         labelKey: "settings.clashSubscriptionTemplate",
+        descriptionKey: "settings.clashSubscriptionTemplateHelp",
         inputType: "text",
       },
       {
         key: "CLASH_SETTINGS_TEMPLATE",
         labelKey: "settings.clashSettingsTemplate",
+        descriptionKey: "settings.clashSettingsTemplateHelp",
         inputType: "text",
       },
       {
         key: "SINGBOX_SUBSCRIPTION_TEMPLATE",
         labelKey: "settings.singboxSubscriptionTemplate",
+        descriptionKey: "settings.singboxSubscriptionTemplateHelp",
         inputType: "text",
       },
       {
         key: "SINGBOX_SETTINGS_TEMPLATE",
         labelKey: "settings.singboxSettingsTemplate",
+        descriptionKey: "settings.singboxSettingsTemplateHelp",
         inputType: "text",
       },
       {
         key: "MUX_TEMPLATE",
         labelKey: "settings.muxTemplate",
+        descriptionKey: "settings.muxTemplateHelp",
         inputType: "text",
       },
       {
         key: "V2RAY_SUBSCRIPTION_TEMPLATE",
         labelKey: "settings.v2raySubscriptionTemplate",
+        descriptionKey: "settings.v2raySubscriptionTemplateHelp",
         inputType: "text",
       },
       {
         key: "V2RAY_SETTINGS_TEMPLATE",
         labelKey: "settings.v2raySettingsTemplate",
+        descriptionKey: "settings.v2raySettingsTemplateHelp",
         inputType: "text",
       },
       {
         key: "V2RAY_TEMPLATE_MAPPING",
         labelKey: "settings.v2rayTemplateMapping",
+        descriptionKey: "settings.v2rayTemplateMappingHelp",
         inputType: "text",
       },
       {
         key: "EXTERNAL_CONFIG",
         labelKey: "settings.externalConfig",
+        descriptionKey: "settings.externalConfigHelp",
         inputType: "text",
       },
     ],

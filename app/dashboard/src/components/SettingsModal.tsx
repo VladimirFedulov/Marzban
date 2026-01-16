@@ -20,11 +20,13 @@ import {
   Tag,
   Text,
   Textarea,
+  Tooltip,
   Wrap,
   WrapItem,
   useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
+import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useDashboard } from "contexts/DashboardContext";
 import {
   SettingDefinition,
@@ -322,8 +324,28 @@ export const SettingsModal = () => {
                   <FormControl key={setting.key} isDisabled={isLoading}>
                     <Stack spacing={2}>
                       <Box>
-                        <FormLabel mb={1} color={labelColor}>
-                          {t(setting.labelKey)}
+                        <FormLabel
+                          mb={1}
+                          color={labelColor}
+                          display="flex"
+                          alignItems="center"
+                          gap={2}
+                        >
+                          <Box as="span">{t(setting.labelKey)}</Box>
+                          {setting.descriptionKey ? (
+                            <Tooltip
+                              label={t(setting.descriptionKey)}
+                              placement="top"
+                              hasArrow
+                            >
+                              <Box
+                                as={QuestionMarkCircleIcon}
+                                cursor="help"
+                                w={4}
+                                h={4}
+                              />
+                            </Tooltip>
+                          ) : null}
                         </FormLabel>
                         {requiresRestart ? (
                           <Badge colorScheme="orange" variant="subtle">
