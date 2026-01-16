@@ -13,18 +13,9 @@ from app.db.models import User
 from app.dependencies import get_validated_sub, validate_dates
 from app.models.user import SubscriptionUserResponse, UserResponse
 from app.subscription.share import encode_title, generate_subscription
-from app.templates import render_template
 import config as config_module
-from config import (
-    SUBSCRIPTION_PAGE_TEMPLATE,
-    USE_CUSTOM_JSON_DEFAULT,
-    USE_CUSTOM_JSON_FOR_HAPP,
-    USE_CUSTOM_JSON_FOR_STREISAND,
-    USE_CUSTOM_JSON_FOR_NPVTUNNEL,
-    USE_CUSTOM_JSON_FOR_V2RAYN,
-    USE_CUSTOM_JSON_FOR_V2RAYNG,
-    XRAY_SUBSCRIPTION_PATH,
-)
+from app.templates import render_template
+from config import XRAY_SUBSCRIPTION_PATH
 
 client_config = {
     "clash-meta": {"config_format": "clash-meta", "media_type": "text/yaml", "as_base64": False, "reverse": False},
@@ -159,7 +150,7 @@ def user_subscription(
         user: UserResponse = UserResponse.model_validate(dbuser)
         return HTMLResponse(
             render_template(
-                SUBSCRIPTION_PAGE_TEMPLATE,
+                config_module.SUBSCRIPTION_PAGE_TEMPLATE,
                 {"user": user}
             )
         )
@@ -199,7 +190,7 @@ def user_subscription(
         conf = generate_subscription(user=user, config_format="outline", as_base64=False, reverse=False)
         return Response(content=conf, media_type="application/json", headers=response_headers)
 
-    elif (USE_CUSTOM_JSON_DEFAULT or USE_CUSTOM_JSON_FOR_V2RAYN) and re.match(r'^v2rayN/(\d+\.\d+)', user_agent):
+    elif (config_module.USE_CUSTOM_JSON_DEFAULT or config_module.USE_CUSTOM_JSON_FOR_V2RAYN) and re.match(r'^v2rayN/(\d+\.\d+)', user_agent):
         version_str = re.match(r'^v2rayN/(\d+\.\d+)', user_agent).group(1)
         if LooseVersion(version_str) >= LooseVersion("6.40"):
             conf = generate_subscription(user=user, config_format="v2ray-json", as_base64=False, reverse=False)
@@ -208,16 +199,16 @@ def user_subscription(
             conf = generate_subscription(user=user, config_format="v2ray", as_base64=True, reverse=False)
             return Response(content=conf, media_type="text/plain", headers=response_headers)
     
-    elif (USE_CUSTOM_JSON_DEFAULT or USE_CUSTOM_JSON_FOR_V2RAYN) and re.match(r'^v2raytun/android', user_agent):
+    elif (config_module.USE_CUSTOM_JSON_DEFAULT or config_module.USE_CUSTOM_JSON_FOR_V2RAYN) and re.match(r'^v2raytun/android', user_agent):
         conf = generate_subscription(user=user, config_format="v2ray-json", as_base64=True, reverse=False)
         return Response(content=conf, media_type="application/json", headers=response_headers)
 
-    elif (USE_CUSTOM_JSON_DEFAULT or USE_CUSTOM_JSON_FOR_V2RAYN) and re.match(r'^v2raytun/ios', user_agent):
+    elif (config_module.USE_CUSTOM_JSON_DEFAULT or config_module.USE_CUSTOM_JSON_FOR_V2RAYN) and re.match(r'^v2raytun/ios', user_agent):
         conf = generate_subscription(user=user, config_format="v2ray-json", as_base64=False, reverse=False)
         return Response(content=conf, media_type="application/json", headers=response_headers)
 
 
-    elif (USE_CUSTOM_JSON_DEFAULT or USE_CUSTOM_JSON_FOR_V2RAYNG) and re.match(r'^v2rayNG/(\d+\.\d+\.\d+)', user_agent):
+    elif (config_module.USE_CUSTOM_JSON_DEFAULT or config_module.USE_CUSTOM_JSON_FOR_V2RAYNG) and re.match(r'^v2rayNG/(\d+\.\d+\.\d+)', user_agent):
         version_str = re.match(r'^v2rayNG/(\d+\.\d+\.\d+)', user_agent).group(1)
         if LooseVersion(version_str) >= LooseVersion("1.8.29"):
             conf = generate_subscription(user=user, config_format="v2ray-json", as_base64=False, reverse=False)
@@ -230,14 +221,14 @@ def user_subscription(
             return Response(content=conf, media_type="text/plain", headers=response_headers)
 
     elif re.match(r'^[Ss]treisand', user_agent):
-        if USE_CUSTOM_JSON_DEFAULT or USE_CUSTOM_JSON_FOR_STREISAND:
+        if config_module.USE_CUSTOM_JSON_DEFAULT or config_module.USE_CUSTOM_JSON_FOR_STREISAND:
             conf = generate_subscription(user=user, config_format="v2ray-json", as_base64=False, reverse=False)
             return Response(content=conf, media_type="application/json", headers=response_headers)
         else:
             conf = generate_subscription(user=user, config_format="v2ray", as_base64=True, reverse=False)
             return Response(content=conf, media_type="text/plain", headers=response_headers)
 
-    elif (USE_CUSTOM_JSON_DEFAULT or USE_CUSTOM_JSON_FOR_HAPP) and re.match(r'^Happ/(\d+\.\d+\.\d+)', user_agent):
+    elif (config_module.USE_CUSTOM_JSON_DEFAULT or config_module.USE_CUSTOM_JSON_FOR_HAPP) and re.match(r'^Happ/(\d+\.\d+\.\d+)', user_agent):
         version_str = re.match(r'^Happ/(\d+\.\d+\.\d+)', user_agent).group(1)
         if LooseVersion(version_str) >= LooseVersion("1.11.0"):
             conf = generate_subscription(user=user, config_format="v2ray-json", as_base64=False, reverse=False)
@@ -246,7 +237,7 @@ def user_subscription(
             conf = generate_subscription(user=user, config_format="v2ray", as_base64=True, reverse=False)
             return Response(content=conf, media_type="text/plain", headers=response_headers)
 
-    elif USE_CUSTOM_JSON_DEFAULT or USE_CUSTOM_JSON_FOR_NPVTUNNEL:
+    elif config_module.USE_CUSTOM_JSON_DEFAULT or config_module.USE_CUSTOM_JSON_FOR_NPVTUNNEL:
         if "ktor-client" in user_agent:
             conf = generate_subscription(user=user, config_format="v2ray-json", as_base64=False, reverse=False)
             return Response(content=conf, media_type="application/json", headers=response_headers)

@@ -68,26 +68,26 @@ SETTINGS = [
     ),
     SettingDefinition("HWID_FALLBACK_DEVICE_LIMIT", "int"),
     SettingDefinition("HWID_DEVICE_RETENTION_DAYS", "int"),
-    SettingDefinition("CUSTOM_TEMPLATES_DIRECTORY", "str", requires_restart=True),
-    SettingDefinition("SUBSCRIPTION_PAGE_TEMPLATE", "str", requires_restart=True),
-    SettingDefinition("HOME_PAGE_TEMPLATE", "str", requires_restart=True),
-    SettingDefinition("CLASH_SUBSCRIPTION_TEMPLATE", "str", requires_restart=True),
-    SettingDefinition("CLASH_SETTINGS_TEMPLATE", "str", requires_restart=True),
-    SettingDefinition("SINGBOX_SUBSCRIPTION_TEMPLATE", "str", requires_restart=True),
-    SettingDefinition("SINGBOX_SETTINGS_TEMPLATE", "str", requires_restart=True),
-    SettingDefinition("MUX_TEMPLATE", "str", requires_restart=True),
-    SettingDefinition("V2RAY_SUBSCRIPTION_TEMPLATE", "str", requires_restart=True),
-    SettingDefinition("V2RAY_SETTINGS_TEMPLATE", "str", requires_restart=True),
-    SettingDefinition("V2RAY_TEMPLATE_MAPPING", "str", requires_restart=True),
+    SettingDefinition("CUSTOM_TEMPLATES_DIRECTORY", "str"),
+    SettingDefinition("SUBSCRIPTION_PAGE_TEMPLATE", "str"),
+    SettingDefinition("HOME_PAGE_TEMPLATE", "str"),
+    SettingDefinition("CLASH_SUBSCRIPTION_TEMPLATE", "str"),
+    SettingDefinition("CLASH_SETTINGS_TEMPLATE", "str"),
+    SettingDefinition("SINGBOX_SUBSCRIPTION_TEMPLATE", "str"),
+    SettingDefinition("SINGBOX_SETTINGS_TEMPLATE", "str"),
+    SettingDefinition("MUX_TEMPLATE", "str"),
+    SettingDefinition("V2RAY_SUBSCRIPTION_TEMPLATE", "str"),
+    SettingDefinition("V2RAY_SETTINGS_TEMPLATE", "str"),
+    SettingDefinition("V2RAY_TEMPLATE_MAPPING", "str"),
     SettingDefinition("XRAY_SUBSCRIPTION_URL_PREFIX", "str", requires_restart=True),
     SettingDefinition("XRAY_SUBSCRIPTION_PATH", "str", requires_restart=True),
-    SettingDefinition("EXTERNAL_CONFIG", "str", requires_restart=True),
-    SettingDefinition("USE_CUSTOM_JSON_DEFAULT", "bool", requires_restart=True),
-    SettingDefinition("USE_CUSTOM_JSON_FOR_V2RAYN", "bool", requires_restart=True),
-    SettingDefinition("USE_CUSTOM_JSON_FOR_V2RAYNG", "bool", requires_restart=True),
-    SettingDefinition("USE_CUSTOM_JSON_FOR_STREISAND", "bool", requires_restart=True),
-    SettingDefinition("USE_CUSTOM_JSON_FOR_HAPP", "bool", requires_restart=True),
-    SettingDefinition("USE_CUSTOM_JSON_FOR_NPVTUNNEL", "bool", requires_restart=True),
+    SettingDefinition("EXTERNAL_CONFIG", "str"),
+    SettingDefinition("USE_CUSTOM_JSON_DEFAULT", "bool"),
+    SettingDefinition("USE_CUSTOM_JSON_FOR_V2RAYN", "bool"),
+    SettingDefinition("USE_CUSTOM_JSON_FOR_V2RAYNG", "bool"),
+    SettingDefinition("USE_CUSTOM_JSON_FOR_STREISAND", "bool"),
+    SettingDefinition("USE_CUSTOM_JSON_FOR_HAPP", "bool"),
+    SettingDefinition("USE_CUSTOM_JSON_FOR_NPVTUNNEL", "bool"),
     SettingDefinition("JOB_CORE_HEALTH_CHECK_INTERVAL", "int", requires_restart=True),
     SettingDefinition("JOB_RECORD_NODE_USAGES_INTERVAL", "int", requires_restart=True),
     SettingDefinition("JOB_RECORD_USER_USAGES_INTERVAL", "int", requires_restart=True),
@@ -181,6 +181,22 @@ def _refresh_subscription_notes():
     }
 
 
+def refresh_v2ray_subscription_templates():
+    templates = {}
+    mapping = config_module.V2RAY_TEMPLATE_MAPPING
+    if mapping:
+        try:
+            templates = {
+                k.strip(): v.strip()
+                for k, v in (
+                    item.split(":") for item in mapping.split(",")
+                )
+            }
+        except ValueError:
+            templates = {}
+    config_module.V2RAY_SUBSCRIPTION_TEMPLATES = templates
+
+
 def get_db_settings(db: Session) -> dict[str, Any]:
     return {setting.key: setting.value for setting in db.query(AppSetting).all()}
 
@@ -195,6 +211,8 @@ def apply_db_overrides(db: Session) -> dict[str, Any]:
         setattr(config_module, key, parsed_value)
         if key.startswith("SUBSCRIPTION_CUSTOM_NOTES_"):
             _refresh_subscription_notes()
+        if key == "V2RAY_TEMPLATE_MAPPING":
+            refresh_v2ray_subscription_templates()
         applied[key] = parsed_value
     return applied
 
