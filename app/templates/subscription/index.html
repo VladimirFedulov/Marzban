@@ -82,6 +82,8 @@
     <p>Data Limit: {% if not user.data_limit %}∞{% else %}{{ user.data_limit | bytesformat }}{% endif %}</p>
     <p>Data Used: {{ user.used_traffic | bytesformat }}{% if user.data_limit_reset_strategy != 'no_reset' %} (resets
         every {{ user.data_limit_reset_strategy.value }}){% endif %}</p>
+    <p>Days to Next Reset: {{ days_to_next_reset }}</p>
+    <p>Next Reset At: {% if next_reset_at %}{{ next_reset_at | datetime }}{% else %}∞{% endif %}</p>
     <p>Expiration Date:
         {% if not user.expire %}
         ∞
