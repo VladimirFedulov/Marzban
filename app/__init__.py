@@ -54,6 +54,11 @@ def on_startup():
         raise ValueError(
             f"you can't use /{XRAY_SUBSCRIPTION_PATH}/ as subscription path it reserved for {app.title}"
         )
+    from app.db.base import SessionLocal
+    from app.settings import apply_db_overrides
+
+    with SessionLocal() as db:
+        apply_db_overrides(db)
     scheduler.start()
 
 

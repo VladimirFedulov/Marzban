@@ -1,12 +1,22 @@
-from dataclasses import dataclass
 from typing import Any
 
 from dotenv import set_key
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 import config as config_module
+from app import logger
+from app.db import get_db
 from app.models.admin import Admin
+from app.settings import (
+    SETTINGS,
+    SETTINGS_BY_KEY,
+    format_env_value,
+    get_db_settings,
+    parse_setting_value,
+    upsert_db_settings,
+)
 from app.utils import responses
 
 router = APIRouter(tags=["Settings"], prefix="/api", responses={401: responses._401})
@@ -14,165 +24,26 @@ router = APIRouter(tags=["Settings"], prefix="/api", responses={401: responses._
 ENV_PATH = config_module.ENV_PATH
 
 
-@dataclass(frozen=True)
-class SettingDefinition:
-    key: str
-    value_type: str
-    requires_restart: bool = False
-    env_delimiter: str = ","
-    allowed_values: tuple[str, ...] | None = None
-
-
-SETTINGS = [
-    SettingDefinition("NOTIFY_STATUS_CHANGE", "bool"),
-    SettingDefinition("NOTIFY_USER_CREATED", "bool"),
-    SettingDefinition("NOTIFY_USER_UPDATED", "bool"),
-    SettingDefinition("NOTIFY_USER_DELETED", "bool"),
-    SettingDefinition("NOTIFY_USER_DATA_USED_RESET", "bool"),
-    SettingDefinition("NOTIFY_USER_SUB_REVOKED", "bool"),
-    SettingDefinition("NOTIFY_IF_DATA_USAGE_PERCENT_REACHED", "bool"),
-    SettingDefinition("NOTIFY_IF_DAYS_LEFT_REACHED", "bool"),
-    SettingDefinition("NOTIFY_LOGIN", "bool"),
-    SettingDefinition("NOTIFY_REACHED_USAGE_PERCENT", "list[int]"),
-    SettingDefinition("NOTIFY_DAYS_LEFT", "list[int]"),
-    SettingDefinition("RECURRENT_NOTIFICATIONS_TIMEOUT", "int"),
-    SettingDefinition("NUMBER_OF_RECURRENT_NOTIFICATIONS", "int"),
-    SettingDefinition("ACTIVE_STATUS_TEXT", "str"),
-    SettingDefinition("EXPIRED_STATUS_TEXT", "str"),
-    SettingDefinition("LIMITED_STATUS_TEXT", "str"),
-    SettingDefinition("DISABLED_STATUS_TEXT", "str"),
-    SettingDefinition("ONHOLD_STATUS_TEXT", "str"),
-    SettingDefinition("USERS_AUTODELETE_DAYS", "int"),
-    SettingDefinition("USER_AUTODELETE_INCLUDE_LIMITED_ACCOUNTS", "bool"),
-    SettingDefinition("WEBHOOK_ADDRESS", "list[str]"),
-    SettingDefinition("DISCORD_WEBHOOK_URL", "str"),
-    SettingDefinition("SUB_UPDATE_INTERVAL", "str"),
-    SettingDefinition("SUB_SUPPORT_URL", "str"),
-    SettingDefinition("SUB_PROFILE_TITLE", "str"),
-    SettingDefinition(
-        "SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS",
-        "bool",
-    ),
-    SettingDefinition(
-        "SUBSCRIPTION_CUSTOM_NOTES_EXPIRED",
-        "list[str]",
-        env_delimiter="|",
-    ),
-    SettingDefinition(
-        "SUBSCRIPTION_CUSTOM_NOTES_LIMITED",
-        "list[str]",
-        env_delimiter="|",
-    ),
-    SettingDefinition(
-        "SUBSCRIPTION_CUSTOM_NOTES_DISABLED",
-        "list[str]",
-        env_delimiter="|",
-    ),
-    SettingDefinition(
-        "HWID_DEVICE_LIMIT_ENABLED",
-        "str",
-        allowed_values=("enabled", "disabled", "logging"),
-    ),
-    SettingDefinition("HWID_FALLBACK_DEVICE_LIMIT", "int"),
-    SettingDefinition("HWID_DEVICE_RETENTION_DAYS", "int"),
-    SettingDefinition("JOB_CORE_HEALTH_CHECK_INTERVAL", "int", requires_restart=True),
-    SettingDefinition("JOB_RECORD_NODE_USAGES_INTERVAL", "int", requires_restart=True),
-    SettingDefinition("JOB_RECORD_USER_USAGES_INTERVAL", "int", requires_restart=True),
-    SettingDefinition("JOB_REVIEW_USERS_INTERVAL", "int", requires_restart=True),
-    SettingDefinition("JOB_SEND_NOTIFICATIONS_INTERVAL", "int", requires_restart=True),
-    SettingDefinition(
-        "JOB_RECORD_REALTIME_BANDWIDTH_INTERVAL", "int", requires_restart=True
-    ),
-    SettingDefinition("JOB_RECORD_USER_USAGES_WORKERS", "int", requires_restart=True),
-    SettingDefinition("JOB_CORE_HEALTH_CHECK_MAX_INSTANCES", "int", requires_restart=True),
-    SettingDefinition(
-        "JOB_RECORD_USER_USAGES_MAX_INSTANCES", "int", requires_restart=True
-    ),
-    SettingDefinition(
-        "JOB_RECORD_NODE_USAGES_MAX_INSTANCES", "int", requires_restart=True
-    ),
-    SettingDefinition(
-        "JOB_RECORD_REALTIME_BANDWIDTH_MAX_INSTANCES", "int", requires_restart=True
-    ),
-    SettingDefinition("JOB_HWID_DEVICE_CLEANUP_INTERVAL", "int", requires_restart=True),
-]
-
-SETTINGS_BY_KEY = {setting.key: setting for setting in SETTINGS}
-
-
 class SettingsPayload(BaseModel):
     values: dict[str, Any]
-
-
-def _parse_bool(value: Any) -> bool:
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, (int, float)):
-        return bool(value)
-    if isinstance(value, str):
-        normalized = value.strip().lower()
-        if normalized in {"true", "1", "yes", "on", "enabled"}:
-            return True
-        if normalized in {"false", "0", "no", "off", "disabled"}:
-            return False
-    raise ValueError("Invalid boolean value")
-
-
-def _parse_list(value: Any, item_type: type, delimiter: str) -> list[Any]:
-    if value is None:
-        return []
-    if isinstance(value, list):
-        items = value
-    elif isinstance(value, str):
-        raw_items = []
-        for line in value.splitlines():
-            raw_items.extend(line.split(delimiter))
-        items = raw_items
-    else:
-        raise ValueError("Invalid list value")
-    cleaned = [str(item).strip() for item in items if str(item).strip()]
-    if item_type is int:
-        return [int(item) for item in cleaned]
-    return cleaned
-
-
-def _parse_value(definition: SettingDefinition, value: Any) -> Any:
-    if definition.value_type == "bool":
-        return _parse_bool(value)
-    if definition.value_type == "int":
-        return int(value)
-    if definition.value_type == "str":
-        parsed = str(value) if value is not None else ""
-        if definition.allowed_values and parsed not in definition.allowed_values:
-            raise ValueError(
-                f"Value must be one of {', '.join(definition.allowed_values)}"
-            )
-        return parsed
-    if definition.value_type == "list[int]":
-        return _parse_list(value, int, definition.env_delimiter)
-    if definition.value_type == "list[str]":
-        return _parse_list(value, str, definition.env_delimiter)
-    raise ValueError("Unsupported setting type")
-
-
-def _format_env_value(definition: SettingDefinition, value: Any) -> str:
-    if definition.value_type.startswith("list"):
-        delimiter = f" {definition.env_delimiter} "
-        return delimiter.join([str(item) for item in value])
-    if definition.value_type == "bool":
-        return "true" if value else "false"
-    return str(value)
 
 
 @router.get(
     "/settings",
     responses={403: responses._403},
 )
-def get_settings(admin: Admin = Depends(Admin.check_sudo_admin)) -> dict:
-    values = {}
+def get_settings(
+    admin: Admin = Depends(Admin.check_sudo_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    values: dict[str, Any] = {}
     metadata = {}
+    db_values = get_db_settings(db)
     for setting in SETTINGS:
-        values[setting.key] = getattr(config_module, setting.key)
+        if setting.key in db_values:
+            values[setting.key] = db_values[setting.key]
+        else:
+            values[setting.key] = getattr(config_module, setting.key)
         metadata[setting.key] = {"requires_restart": setting.requires_restart}
     return {"values": values, "metadata": metadata}
 
@@ -184,19 +55,25 @@ def get_settings(admin: Admin = Depends(Admin.check_sudo_admin)) -> dict:
 def update_settings(
     payload: SettingsPayload,
     admin: Admin = Depends(Admin.check_sudo_admin),
+    db: Session = Depends(get_db),
 ) -> dict:
-    ENV_PATH.parent.mkdir(parents=True, exist_ok=True)
-    ENV_PATH.touch(exist_ok=True)
+    can_write_env = True
+    try:
+        ENV_PATH.parent.mkdir(parents=True, exist_ok=True)
+        ENV_PATH.touch(exist_ok=True)
+    except OSError as exc:
+        logger.warning("Unable to prepare env file %s: %s", ENV_PATH, exc)
+        can_write_env = False
+
     updated_values = {}
     for key, raw_value in payload.values.items():
         definition = SETTINGS_BY_KEY.get(key)
         if not definition:
             raise HTTPException(status_code=400, detail=f"Unknown setting: {key}")
         try:
-            parsed_value = _parse_value(definition, raw_value)
+            parsed_value = parse_setting_value(definition, raw_value)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
-        set_key(str(ENV_PATH), key, _format_env_value(definition, parsed_value))
         setattr(config_module, key, parsed_value)
         if key.startswith("SUBSCRIPTION_CUSTOM_NOTES_"):
             config_module.SUBSCRIPTION_CUSTOM_NOTES = {
@@ -205,4 +82,15 @@ def update_settings(
                 "disabled": config_module.SUBSCRIPTION_CUSTOM_NOTES_DISABLED,
             }
         updated_values[key] = parsed_value
+
+    upsert_db_settings(db, updated_values)
+
+    if can_write_env:
+        for key, parsed_value in updated_values.items():
+            definition = SETTINGS_BY_KEY[key]
+            try:
+                set_key(str(ENV_PATH), key, format_env_value(definition, parsed_value))
+            except OSError as exc:
+                logger.warning("Unable to update env file %s: %s", ENV_PATH, exc)
+                break
     return {"values": updated_values}
