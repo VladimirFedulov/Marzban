@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from pathlib import Path
@@ -172,6 +173,42 @@ DISABLE_RECORDING_NODE_USAGE = config("DISABLE_RECORDING_NODE_USAGE", cast=bool,
 SUB_UPDATE_INTERVAL = config("SUB_UPDATE_INTERVAL", default="12")
 SUB_SUPPORT_URL = config("SUB_SUPPORT_URL", default="https://t.me/")
 SUB_PROFILE_TITLE = config("SUB_PROFILE_TITLE", default="Subscription")
+
+def _parse_subscription_custom_headers(value):
+    if value is None or value == "":
+        return []
+    if isinstance(value, list):
+        entries = value
+    elif isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except json.JSONDecodeError:
+            return []
+        if not isinstance(parsed, list):
+            return []
+        entries = parsed
+    else:
+        return []
+
+    normalized = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        name = str(entry.get("name", "")).strip()
+        header_value = str(entry.get("value", "")).strip()
+        user_agent = str(entry.get("user_agent", "")).strip()
+        if not name or not header_value:
+            continue
+        normalized.append(
+            {"name": name, "value": header_value, "user_agent": user_agent}
+        )
+    return normalized
+
+SUBSCRIPTION_CUSTOM_HEADERS = config(
+    "SUBSCRIPTION_CUSTOM_HEADERS",
+    default="",
+    cast=_parse_subscription_custom_headers,
+)
 
 
 def _split_subscription_notes(value: str) -> list[str]:

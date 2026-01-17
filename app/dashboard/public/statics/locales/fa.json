@@ -251,6 +251,17 @@
   "settings.useCustomJsonForStreisand": "JSON برای Streisand",
   "settings.useCustomJsonForHapp": "JSON برای Happ",
   "settings.useCustomJsonForNpvtunnel": "JSON برای NPV Tunnel",
+  "settings.subscriptionCustomHeaders": "هدرهای سفارشی اشتراک",
+  "settings.subscriptionCustomHeadersHelp": "ارسال هدرهای پاسخ اضافی در صورت تطابق User-Agent (برای همه از * استفاده کنید، تطابق جزئی مجاز است).",
+  "settings.subscriptionCustomHeadersName": "نام هدر",
+  "settings.subscriptionCustomHeadersValue": "مقدار هدر",
+  "settings.subscriptionCustomHeadersUserAgent": "تطابق User-Agent",
+  "settings.subscriptionCustomHeadersEmpty": "هنوز هدر سفارشی وجود ندارد. یکی را اضافه کنید.",
+  "settings.subscriptionCustomHeadersNamePlaceholder": "ping-result",
+  "settings.subscriptionCustomHeadersValuePlaceholder": "time",
+  "settings.subscriptionCustomHeadersUserAgentPlaceholder": "Happ",
+  "settings.subscriptionCustomHeadersAdd": "افزودن هدر",
+  "settings.subscriptionCustomHeadersRemove": "حذف هدر",
   "settings.envOnlyTitle": "تنظیمات فقط .env",
   "settings.envOnlyDescription": "این گزینه‌ها در اینجا قابل ویرایش نیستند و باید مستقیماً در .env تغییر کنند."
 }

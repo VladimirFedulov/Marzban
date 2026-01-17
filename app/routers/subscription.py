@@ -225,6 +225,31 @@ def get_next_reset_info(dbuser: User) -> tuple[str | int, datetime | None]:
     return days_to_next_reset, next_reset_at
 
 
+def _user_agent_matches(rule: str, user_agent: str) -> bool:
+    if not rule:
+        return False
+    if rule == "*":
+        return True
+    if not user_agent:
+        return False
+    return rule.lower() in user_agent.lower()
+
+
+def _apply_custom_subscription_headers(
+    response_headers: dict[str, str], user_agent: str
+) -> None:
+    for entry in config_module.SUBSCRIPTION_CUSTOM_HEADERS:
+        if not isinstance(entry, dict):
+            continue
+        name = str(entry.get("name", "")).strip()
+        value = str(entry.get("value", "")).strip()
+        rule = str(entry.get("user_agent", "")).strip()
+        if not name or not value:
+            continue
+        if _user_agent_matches(rule, user_agent):
+            response_headers[name] = value
+
+
 @router.get("/{token}/")
 @router.get("/{token}", include_in_schema=False)
 def user_subscription(
@@ -263,6 +288,7 @@ def user_subscription(
             for key, val in get_subscription_user_info(user).items()
         )
     }
+    _apply_custom_subscription_headers(response_headers, user_agent)
 
     allowed, _ = enforce_hwid_device_limit(db, dbuser, request, user_agent)
     if not allowed:
@@ -355,6 +381,7 @@ def user_subscription_with_client_type(
             for key, val in get_subscription_user_info(user).items()
         )
     }
+    _apply_custom_subscription_headers(response_headers, user_agent)
 
     allowed, _ = enforce_hwid_device_limit(db, dbuser, request, user_agent)
     if not allowed:

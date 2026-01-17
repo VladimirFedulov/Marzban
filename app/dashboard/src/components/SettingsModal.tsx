@@ -2,10 +2,13 @@ import {
   Badge,
   Box,
   Button,
+  Divider,
   Flex,
   FormControl,
   FormLabel,
   Heading,
+  HStack,
+  IconButton,
   Input,
   Modal,
   ModalBody,
@@ -26,7 +29,11 @@ import {
   useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
-import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  QuestionMarkCircleIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { useDashboard } from "contexts/DashboardContext";
 import {
   SettingDefinition,
@@ -43,14 +50,22 @@ type SettingsResponse = {
   metadata: Record<string, { requires_restart: boolean }>;
 };
 
+type CustomHeaderRule = {
+  name: string;
+  value: string;
+  user_agent: string;
+};
+
 type SettingsPayload = {
   values: Record<string, unknown>;
 };
 
+type DraftValue = string | boolean | CustomHeaderRule[];
+
 const formatSettingValue = (
   setting: SettingDefinition,
   value: unknown
-): string | boolean => {
+): DraftValue => {
   if (setting.inputType === "boolean") {
     return Boolean(value);
   }
@@ -59,6 +74,16 @@ const formatSettingValue = (
       return value.join(`${setting.delimiter ?? ","} `);
     }
     return value ? String(value) : "";
+  }
+  if (setting.key === "SUBSCRIPTION_CUSTOM_HEADERS") {
+    if (!Array.isArray(value)) return [];
+    return value
+      .filter((entry): entry is Record<string, unknown> => Boolean(entry))
+      .map((entry) => ({
+        name: entry.name ? String(entry.name) : "",
+        value: entry.value ? String(entry.value) : "",
+        user_agent: entry.user_agent ? String(entry.user_agent) : "",
+      }));
   }
   return value ? String(value) : "";
 };
@@ -127,13 +152,11 @@ export const SettingsModal = () => {
     queryFn: () => fetch("/settings"),
     enabled: isEditingSettings,
   });
-  const [draftValues, setDraftValues] = useState<
-    Record<string, string | boolean>
-  >({});
+  const [draftValues, setDraftValues] = useState<Record<string, DraftValue>>({});
 
   useEffect(() => {
     if (!data?.values) return;
-    const initialValues: Record<string, string | boolean> = {};
+    const initialValues: Record<string, DraftValue> = {};
     settingsGroups.forEach((group) => {
       group.settings.forEach((setting) => {
         initialValues[setting.key] = formatSettingValue(
@@ -171,6 +194,19 @@ export const SettingsModal = () => {
     },
   });
 
+  const sanitizeCustomHeaders = (
+    headers: DraftValue
+  ): CustomHeaderRule[] => {
+    if (!Array.isArray(headers)) return [];
+    return headers
+      .map((header) => ({
+        name: header.name.trim(),
+        value: header.value.trim(),
+        user_agent: header.user_agent.trim(),
+      }))
+      .filter((header) => header.name && header.value);
+  };
+
   const handleSave = () => {
     const payload: SettingsPayload = { values: {} };
     settingsGroups.forEach((group) => {
@@ -191,10 +227,142 @@ export const SettingsModal = () => {
           );
           return;
         }
+        if (setting.inputType === "custom") {
+          payload.values[setting.key] = sanitizeCustomHeaders(rawValue);
+          return;
+        }
         payload.values[setting.key] = String(rawValue ?? "");
       });
     });
     saveSettings(payload);
+  };
+
+  const renderCustomHeaders = (
+    value: DraftValue,
+    onChange: (nextValue: CustomHeaderRule[]) => void,
+    isDisabled?: boolean
+  ) => {
+    const headers = Array.isArray(value) ? value : [];
+    const updateHeader = (
+      index: number,
+      key: keyof CustomHeaderRule,
+      nextValue: string
+    ) => {
+      onChange(
+        headers.map((header, idx) =>
+          idx === index ? { ...header, [key]: nextValue } : header
+        )
+      );
+    };
+    const handleAdd = () =>
+      onChange([...headers, { name: "", value: "", user_agent: "" }]);
+    const handleRemove = (index: number) =>
+      onChange(headers.filter((_, idx) => idx !== index));
+
+    return (
+      <Stack spacing={3}>
+        <Stack spacing={2}>
+          <Flex
+            gap={4}
+            fontSize="xs"
+            textTransform="uppercase"
+            color={labelColor}
+            fontWeight="semibold"
+          >
+            <Box flex="1">{t("settings.subscriptionCustomHeadersName")}</Box>
+            <Box flex="1">{t("settings.subscriptionCustomHeadersValue")}</Box>
+            <Box flex="1">{t("settings.subscriptionCustomHeadersUserAgent")}</Box>
+            <Box w="36px" />
+          </Flex>
+          <Divider borderColor={cardBorder} />
+        </Stack>
+        {headers.length === 0 ? (
+          <Text fontSize="sm" color={helperTextColor}>
+            {t("settings.subscriptionCustomHeadersEmpty")}
+          </Text>
+        ) : (
+          <Stack spacing={2}>
+            {headers.map((header, index) => (
+              <HStack key={`${header.name}-${index}`} align="flex-start">
+                <Input
+                  flex="1"
+                  bg={inputBg}
+                  borderColor={inputBorder}
+                  _hover={{ borderColor: inputHoverBorder }}
+                  _focusVisible={{
+                    borderColor: inputFocusBorder,
+                    boxShadow: "none",
+                  }}
+                  placeholder={t(
+                    "settings.subscriptionCustomHeadersNamePlaceholder"
+                  )}
+                  value={header.name}
+                  onChange={(event) =>
+                    updateHeader(index, "name", event.target.value)
+                  }
+                  isDisabled={isDisabled}
+                />
+                <Input
+                  flex="1"
+                  bg={inputBg}
+                  borderColor={inputBorder}
+                  _hover={{ borderColor: inputHoverBorder }}
+                  _focusVisible={{
+                    borderColor: inputFocusBorder,
+                    boxShadow: "none",
+                  }}
+                  placeholder={t(
+                    "settings.subscriptionCustomHeadersValuePlaceholder"
+                  )}
+                  value={header.value}
+                  onChange={(event) =>
+                    updateHeader(index, "value", event.target.value)
+                  }
+                  isDisabled={isDisabled}
+                />
+                <Input
+                  flex="1"
+                  bg={inputBg}
+                  borderColor={inputBorder}
+                  _hover={{ borderColor: inputHoverBorder }}
+                  _focusVisible={{
+                    borderColor: inputFocusBorder,
+                    boxShadow: "none",
+                  }}
+                  placeholder={t(
+                    "settings.subscriptionCustomHeadersUserAgentPlaceholder"
+                  )}
+                  value={header.user_agent}
+                  onChange={(event) =>
+                    updateHeader(index, "user_agent", event.target.value)
+                  }
+                  isDisabled={isDisabled}
+                />
+                <IconButton
+                  aria-label={t("settings.subscriptionCustomHeadersRemove")}
+                  icon={<TrashIcon width={16} />}
+                  size="sm"
+                  variant="ghost"
+                  colorScheme="red"
+                  onClick={() => handleRemove(index)}
+                  isDisabled={isDisabled}
+                />
+              </HStack>
+            ))}
+          </Stack>
+        )}
+        <Button
+          size="sm"
+          variant="outline"
+          leftIcon={<PlusIcon width={16} />}
+          onClick={handleAdd}
+          isDisabled={isDisabled}
+          alignSelf="flex-start"
+        >
+          {t("settings.subscriptionCustomHeadersAdd")}
+        </Button>
+      </Stack>
+    );
   };
 
   const renderInput = (setting: SettingDefinition) => {
@@ -271,6 +439,14 @@ export const SettingsModal = () => {
         </Select>
       );
     }
+    if (setting.inputType === "custom") {
+      return renderCustomHeaders(value, (nextValue) =>
+        setDraftValues((prev) => ({
+          ...prev,
+          [setting.key]: nextValue,
+        }))
+      );
+    }
     return (
       <Input
         type="text"
@@ -320,8 +496,13 @@ export const SettingsModal = () => {
                 const requiresRestart =
                   data?.metadata?.[setting.key]?.requires_restart ??
                   setting.requiresRestart;
+                const isWide = setting.inputType === "custom";
                 return (
-                  <FormControl key={setting.key} isDisabled={isLoading}>
+                  <FormControl
+                    key={setting.key}
+                    isDisabled={isLoading}
+                    gridColumn={isWide ? { base: "auto", lg: "1 / -1" } : undefined}
+                  >
                     <Stack spacing={2}>
                       <Box>
                         <FormLabel
