@@ -37,6 +37,7 @@ client_config = {
 router = APIRouter(tags=['Subscription'], prefix=f'/{XRAY_SUBSCRIPTION_PATH}')
 _SUBSCRIPTION_CACHE: dict[tuple, dict[str, object]] = {}
 _SUBSCRIPTION_CACHE_TTL_SECONDS = 60
+_SUBSCRIPTION_METADATA_UPDATE_SECONDS = 60
 _RESET_STRATEGY_TO_DAYS = {
     UserDataLimitResetStrategy.day.value: 1,
     UserDataLimitResetStrategy.week.value: 7,
@@ -79,6 +80,13 @@ def _set_cached_subscription(cache_key: tuple, content: str) -> None:
         "content": content,
         "expires_at": time() + _SUBSCRIPTION_CACHE_TTL_SECONDS,
     }
+
+
+def _should_update_subscription_metadata(dbuser: User) -> bool:
+    last_update = dbuser.sub_updated_at
+    if not last_update:
+        return True
+    return datetime.utcnow() - last_update >= timedelta(seconds=_SUBSCRIPTION_METADATA_UPDATE_SECONDS)
 
 
 def enforce_hwid_device_limit(
@@ -323,7 +331,8 @@ def user_subscription(
             headers=response_headers,
         )
 
-    crud.update_user_sub(db, dbuser, user_agent)
+    if _should_update_subscription_metadata(dbuser):
+        crud.update_user_sub(db, dbuser, user_agent)
     config = _resolve_client_config(user_agent)
     cache_key = _build_subscription_cache_key(
         user=user,
