@@ -505,10 +505,17 @@ export const UserDialog: FC<UserDialogProps> = () => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="6xl">
-      <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+    <Modal isOpen={isOpen} onClose={onClose} size="4xl">
+      <ModalOverlay bg="blackAlpha.500" backdropFilter="blur(10px)" />
       <FormProvider {...form}>
-        <ModalContent mx="3" maxW="90vw" maxH="90vh">
+        <ModalContent
+          mx="3"
+          maxW="80vw"
+          maxH="calc(100vh - 2rem)"
+          bg={colorMode === "dark" ? "gray.800" : "white"}
+          borderColor={colorMode === "dark" ? "gray.700" : "gray.200"}
+          borderWidth="1px"
+        >
           <form onSubmit={form.handleSubmit(submit)}>
             <ModalHeader pt={6}>
               <HStack gap={2}>

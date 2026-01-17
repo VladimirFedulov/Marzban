@@ -250,22 +250,6 @@ def user_subscription(
         )
 
     user: UserResponse = UserResponse.model_validate(dbuser)
-    allowed, _ = enforce_hwid_device_limit(db, dbuser, request, user_agent)
-    if not allowed:
-        notes = get_hwid_limit_notes()
-        if not notes:
-            return Response(status_code=200, content="")
-        config = _resolve_client_config(user_agent)
-        fake_conf = generate_fake_subscription(
-            user=user,
-            config_format=config["config_format"],
-            as_base64=config["as_base64"],
-            reverse=config["reverse"],
-            notes=notes,
-        )
-        return Response(content=fake_conf, media_type=config["media_type"])
-
-    crud.update_user_sub(db, dbuser, user_agent)
     response_headers = {
         "content-disposition": f'attachment; filename="{user.username}"',
         "profile-web-page-url": str(request.url),
@@ -280,6 +264,26 @@ def user_subscription(
         )
     }
 
+    allowed, _ = enforce_hwid_device_limit(db, dbuser, request, user_agent)
+    if not allowed:
+        notes = get_hwid_limit_notes()
+        if not notes:
+            return Response(status_code=200, content="", headers=response_headers)
+        config = _resolve_client_config(user_agent)
+        fake_conf = generate_fake_subscription(
+            user=user,
+            config_format=config["config_format"],
+            as_base64=config["as_base64"],
+            reverse=config["reverse"],
+            notes=notes,
+        )
+        return Response(
+            content=fake_conf,
+            media_type=config["media_type"],
+            headers=response_headers,
+        )
+
+    crud.update_user_sub(db, dbuser, user_agent)
     config = _resolve_client_config(user_agent)
     conf = generate_subscription(
         user=user,
@@ -338,21 +342,6 @@ def user_subscription_with_client_type(
 ):
     """Provides a subscription link based on the specified client type (e.g., Clash, V2Ray)."""
     user: UserResponse = UserResponse.model_validate(dbuser)
-    allowed, _ = enforce_hwid_device_limit(db, dbuser, request, user_agent)
-    if not allowed:
-        notes = get_hwid_limit_notes()
-        if not notes:
-            return Response(status_code=200, content="")
-        config = client_config.get(client_type)
-        fake_conf = generate_fake_subscription(
-            user=user,
-            config_format=config["config_format"],
-            as_base64=config["as_base64"],
-            reverse=config["reverse"],
-            notes=notes,
-        )
-        return Response(content=fake_conf, media_type=config["media_type"])
-
     response_headers = {
         "content-disposition": f'attachment; filename="{user.username}"',
         "profile-web-page-url": str(request.url),
@@ -366,6 +355,25 @@ def user_subscription_with_client_type(
             for key, val in get_subscription_user_info(user).items()
         )
     }
+
+    allowed, _ = enforce_hwid_device_limit(db, dbuser, request, user_agent)
+    if not allowed:
+        notes = get_hwid_limit_notes()
+        if not notes:
+            return Response(status_code=200, content="", headers=response_headers)
+        config = client_config.get(client_type)
+        fake_conf = generate_fake_subscription(
+            user=user,
+            config_format=config["config_format"],
+            as_base64=config["as_base64"],
+            reverse=config["reverse"],
+            notes=notes,
+        )
+        return Response(
+            content=fake_conf,
+            media_type=config["media_type"],
+            headers=response_headers,
+        )
 
     config = client_config.get(client_type)
     conf = generate_subscription(user=user,
