@@ -76,6 +76,13 @@ def _get_cached_subscription(cache_key: tuple) -> str | None:
 
 
 def _set_cached_subscription(cache_key: tuple, content: str) -> None:
+    user_id, config_format, as_base64, reverse, *_ = cache_key
+    keys_to_remove = [
+        key for key in _SUBSCRIPTION_CACHE.keys()
+        if key[:4] == (user_id, config_format, as_base64, reverse)
+    ]
+    for key in keys_to_remove:
+        _SUBSCRIPTION_CACHE.pop(key, None)
     _SUBSCRIPTION_CACHE[cache_key] = {
         "content": content,
         "expires_at": time() + _SUBSCRIPTION_CACHE_TTL_SECONDS,
