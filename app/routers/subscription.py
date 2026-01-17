@@ -22,7 +22,6 @@ from app.subscription.share import (
 )
 import config as config_module
 from app.templates import render_template
-from config import XRAY_SUBSCRIPTION_PATH
 
 client_config = {
     "clash-meta": {"config_format": "clash-meta", "media_type": "text/yaml", "as_base64": False, "reverse": False},
@@ -34,7 +33,7 @@ client_config = {
                    "reverse": False}
 }
 
-router = APIRouter(tags=['Subscription'], prefix=f'/{XRAY_SUBSCRIPTION_PATH}')
+router = APIRouter(tags=['Subscription'], prefix=f'/{config_module.XRAY_SUBSCRIPTION_PATH}')
 _SUBSCRIPTION_CACHE: dict[tuple, dict[str, object]] = {}
 _SUBSCRIPTION_CACHE_TTL_SECONDS = 60
 _SUBSCRIPTION_METADATA_UPDATE_SECONDS = 60
