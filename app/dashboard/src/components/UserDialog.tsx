@@ -9,6 +9,8 @@ import {
   FormErrorMessage,
   FormHelperText,
   FormLabel,
+  Grid,
+  GridItem,
   HStack,
   IconButton,
   Modal,
@@ -29,7 +31,6 @@ import {
   Tr,
   Spinner,
   Switch,
-  SimpleGrid,
   Textarea,
   Tooltip,
   VStack,
@@ -504,25 +505,12 @@ export const UserDialog: FC<UserDialogProps> = () => {
     return result;
   };
 
-  const modalBg = colorMode === "dark" ? "gray.800" : "white";
-  const modalBorderColor = colorMode === "dark" ? "gray.700" : "gray.200";
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="4xl">
-      <ModalOverlay bg="blackAlpha.500" backdropFilter="blur(10px)" />
+    <Modal isOpen={isOpen} onClose={onClose} size="3xl">
+      <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
       <FormProvider {...form}>
-        <ModalContent
-          mx="3"
-          maxW="80vw"
-          maxH="calc(100vh - 2rem)"
-          bg={modalBg}
-          borderColor={modalBorderColor}
-          borderWidth="1px"
-        >
-          <form
-            onSubmit={form.handleSubmit(submit)}
-            style={{ display: "flex", flexDirection: "column", height: "100%" }}
-          >
+        <ModalContent mx="3">
+          <form onSubmit={form.handleSubmit(submit)}>
             <ModalHeader pt={6}>
               <HStack gap={2}>
                 <Icon color="primary">
@@ -540,9 +528,15 @@ export const UserDialog: FC<UserDialogProps> = () => {
               </HStack>
             </ModalHeader>
             <ModalCloseButton mt={3} disabled={disabled} />
-            <ModalBody overflowY="auto" flex="1" minH={0} bg={modalBg}>
-              <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={3}>
-                <Box>
+            <ModalBody>
+              <Grid
+                templateColumns={{
+                  base: "repeat(1, 1fr)",
+                  md: "repeat(2, 1fr)",
+                }}
+                gap={3}
+              >
+                <GridItem>
                   <VStack justifyContent="space-between">
                     <Flex
                       flexDirection="column"
@@ -846,8 +840,8 @@ export const UserDialog: FC<UserDialogProps> = () => {
                       </Alert>
                     )}
                   </VStack>
-                </Box>
-                <Box>
+                </GridItem>
+                <GridItem>
                   <FormControl
                     isInvalid={
                       !!form.formState.errors.selected_proxies?.message
@@ -891,8 +885,31 @@ export const UserDialog: FC<UserDialogProps> = () => {
                       )}
                     </FormErrorMessage>
                   </FormControl>
-                </Box>
-              </SimpleGrid>
+                </GridItem>
+                {isEditing && usageVisible && (
+                  <GridItem pt={6} colSpan={{ base: 1, md: 2 }}>
+                    <VStack gap={4}>
+                      <UsageFilter
+                        defaultValue={usageFilter}
+                        onChange={(filter, query) => {
+                          setUsageFilter(filter);
+                          fetchUsageWithFilter(query);
+                        }}
+                      />
+                      <Box
+                        width={{ base: "100%", md: "70%" }}
+                        justifySelf="center"
+                      >
+                        <ReactApexChart
+                          options={usage.options}
+                          series={usage.series}
+                          type="donut"
+                        />
+                      </Box>
+                    </VStack>
+                  </GridItem>
+                )}
+              </Grid>
               <Box mt={4} w="full">
                 <VStack align="stretch" spacing={3}>
                   <FormControl>
@@ -1149,30 +1166,6 @@ export const UserDialog: FC<UserDialogProps> = () => {
                   )}
                 </VStack>
               </Box>
-              {isEditing && usageVisible && (
-                <Box mt={6} w="full">
-                  <VStack gap={4} align="stretch">
-                    <UsageFilter
-                      defaultValue={usageFilter}
-                      onChange={(filter, query) => {
-                        setUsageFilter(filter);
-                        fetchUsageWithFilter(query);
-                      }}
-                    />
-                    <Box
-                      width={{ base: "100%", md: "70%" }}
-                      justifySelf="center"
-                      alignSelf={{ base: "stretch", md: "center" }}
-                    >
-                      <ReactApexChart
-                        options={usage.options}
-                        series={usage.series}
-                        type="donut"
-                      />
-                    </Box>
-                  </VStack>
-                </Box>
-              )}
               {error && (
                 <Alert
                   mt="3"
@@ -1184,7 +1177,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
                 </Alert>
               )}
             </ModalBody>
-            <ModalFooter mt="3" bg={modalBg}>
+            <ModalFooter mt="3">
               <HStack
                 justifyContent="space-between"
                 w="full"
