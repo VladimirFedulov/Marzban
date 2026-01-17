@@ -512,6 +512,9 @@ export const UserDialog: FC<UserDialogProps> = () => {
           mx="3"
           maxW="80vw"
           maxH="calc(100vh - 2rem)"
+          display="flex"
+          flexDirection="column"
+          overflow="hidden"
           bg={colorMode === "dark" ? "gray.800" : "white"}
           borderColor={colorMode === "dark" ? "gray.700" : "gray.200"}
           borderWidth="1px"
