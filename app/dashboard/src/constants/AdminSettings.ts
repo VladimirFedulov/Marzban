@@ -3,7 +3,8 @@ export type SettingInputType =
   | "number"
   | "text"
   | "textarea"
-  | "select";
+  | "select"
+  | "custom";
 
 export type SettingOption = {
   value: string;
@@ -183,6 +184,12 @@ export const settingsGroups: SettingsGroup[] = [
         labelKey: "settings.subProfileTitle",
         descriptionKey: "settings.subProfileTitleHelp",
         inputType: "text",
+      },
+      {
+        key: "SUBSCRIPTION_CUSTOM_HEADERS",
+        labelKey: "settings.subscriptionCustomHeaders",
+        descriptionKey: "settings.subscriptionCustomHeadersHelp",
+        inputType: "custom",
       },
       {
         key: "SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS",

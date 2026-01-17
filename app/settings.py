@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -42,6 +43,7 @@ SETTINGS = [
     SettingDefinition("SUB_UPDATE_INTERVAL", "str"),
     SettingDefinition("SUB_SUPPORT_URL", "str"),
     SettingDefinition("SUB_PROFILE_TITLE", "str"),
+    SettingDefinition("SUBSCRIPTION_CUSTOM_HEADERS", "list[dict]"),
     SettingDefinition(
         "SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS",
         "bool",
@@ -150,6 +152,39 @@ def _parse_list(value: Any, item_type: type, delimiter: str) -> list[Any]:
     return cleaned
 
 
+def _parse_dict_list(value: Any) -> list[dict[str, Any]]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        items = value
+    elif isinstance(value, str):
+        if not value.strip():
+            return []
+        try:
+            parsed = json.loads(value)
+        except json.JSONDecodeError as exc:
+            raise ValueError("Invalid JSON value") from exc
+        if not isinstance(parsed, list):
+            raise ValueError("Invalid JSON value")
+        items = parsed
+    else:
+        raise ValueError("Invalid list value")
+
+    normalized = []
+    for item in items:
+        if not isinstance(item, dict):
+            raise ValueError("Invalid list value")
+        name = str(item.get("name", "")).strip()
+        header_value = str(item.get("value", "")).strip()
+        user_agent = str(item.get("user_agent", "")).strip()
+        if not name or not header_value:
+            continue
+        normalized.append(
+            {"name": name, "value": header_value, "user_agent": user_agent}
+        )
+    return normalized
+
+
 def parse_setting_value(definition: SettingDefinition, value: Any) -> Any:
     if definition.value_type == "bool":
         return _parse_bool(value)
@@ -166,11 +201,15 @@ def parse_setting_value(definition: SettingDefinition, value: Any) -> Any:
         return _parse_list(value, int, definition.env_delimiter)
     if definition.value_type == "list[str]":
         return _parse_list(value, str, definition.env_delimiter)
+    if definition.value_type == "list[dict]":
+        return _parse_dict_list(value)
     raise ValueError("Unsupported setting type")
 
 
 def format_env_value(definition: SettingDefinition, value: Any) -> str:
     if definition.value_type.startswith("list"):
+        if definition.value_type == "list[dict]":
+            return json.dumps(value, ensure_ascii=False)
         delimiter = f" {definition.env_delimiter} "
         return delimiter.join([str(item) for item in value])
     if definition.value_type == "bool":

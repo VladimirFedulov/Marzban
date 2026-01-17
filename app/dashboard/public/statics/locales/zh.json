@@ -246,6 +246,17 @@
   "settings.useCustomJsonForStreisand": "为 Streisand 使用 JSON 配置",
   "settings.useCustomJsonForHapp": "为 Happ 使用 JSON 配置",
   "settings.useCustomJsonForNpvtunnel": "为 NPV Tunnel 使用 JSON 配置",
+  "settings.subscriptionCustomHeaders": "订阅自定义响应头",
+  "settings.subscriptionCustomHeadersHelp": "当 User-Agent 匹配时发送额外响应头（使用 * 匹配所有，支持部分匹配）。",
+  "settings.subscriptionCustomHeadersName": "响应头名称",
+  "settings.subscriptionCustomHeadersValue": "响应头内容",
+  "settings.subscriptionCustomHeadersUserAgent": "User-Agent 匹配",
+  "settings.subscriptionCustomHeadersEmpty": "暂未设置自定义响应头，请在下方添加。",
+  "settings.subscriptionCustomHeadersNamePlaceholder": "ping-result",
+  "settings.subscriptionCustomHeadersValuePlaceholder": "time",
+  "settings.subscriptionCustomHeadersUserAgentPlaceholder": "Happ",
+  "settings.subscriptionCustomHeadersAdd": "添加响应头",
+  "settings.subscriptionCustomHeadersRemove": "移除响应头",
   "settings.envOnlyTitle": "仅 .env 设置",
   "settings.envOnlyDescription": "这些选项不能在此处编辑，需要直接在 .env 中修改。"
 }
