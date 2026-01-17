@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 
-from config import ALLOWED_ORIGINS, DOCS, XRAY_SUBSCRIPTION_PATH
+import config as config_module
 
 __version__ = "0.8.6.12"
 
@@ -16,7 +16,7 @@ app = FastAPI(
     title="MarzbanAPI",
     description="Unified GUI Censorship Resistant Solution Powered by Xray",
     version=__version__,
-    openapi_url="/openapi.json" if DOCS else None,
+    openapi_url="/openapi.json" if config_module.DOCS else None,
 )
 
 scheduler = BackgroundScheduler(
@@ -26,13 +26,20 @@ logger = logging.getLogger("uvicorn.error")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=config_module.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-from app import dashboard, jobs, routers, telegram  # noqa
-from app.routers import api_router  # noqa
+
+from app.db.base import SessionLocal  # noqa: E402
+from app.settings import apply_db_overrides  # noqa: E402
+
+with SessionLocal() as db:
+    apply_db_overrides(db)
+
+from app import dashboard, jobs, routers, telegram  # noqa: E402
+from app.routers import api_router  # noqa: E402
 
 app.include_router(api_router)
 
@@ -50,15 +57,10 @@ use_route_names_as_operation_ids(app)
 def on_startup():
     paths = [f"{r.path}/" for r in app.routes]
     paths.append("/api/")
-    if f"/{XRAY_SUBSCRIPTION_PATH}/" in paths:
+    if f"/{config_module.XRAY_SUBSCRIPTION_PATH}/" in paths:
         raise ValueError(
-            f"you can't use /{XRAY_SUBSCRIPTION_PATH}/ as subscription path it reserved for {app.title}"
+            f"you can't use /{config_module.XRAY_SUBSCRIPTION_PATH}/ as subscription path it reserved for {app.title}"
         )
-    from app.db.base import SessionLocal
-    from app.settings import apply_db_overrides
-
-    with SessionLocal() as db:
-        apply_db_overrides(db)
     scheduler.start()
 
 
