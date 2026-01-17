@@ -504,6 +504,9 @@ export const UserDialog: FC<UserDialogProps> = () => {
     return result;
   };
 
+  const modalBg = colorMode === "dark" ? "gray.800" : "white";
+  const modalBorderColor = colorMode === "dark" ? "gray.700" : "gray.200";
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="4xl">
       <ModalOverlay bg="blackAlpha.500" backdropFilter="blur(10px)" />
@@ -512,8 +515,8 @@ export const UserDialog: FC<UserDialogProps> = () => {
           mx="3"
           maxW="80vw"
           maxH="calc(100vh - 2rem)"
-          bg={colorMode === "dark" ? "gray.800" : "white"}
-          borderColor={colorMode === "dark" ? "gray.700" : "gray.200"}
+          bg={modalBg}
+          borderColor={modalBorderColor}
           borderWidth="1px"
         >
           <form
@@ -537,7 +540,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
               </HStack>
             </ModalHeader>
             <ModalCloseButton mt={3} disabled={disabled} />
-            <ModalBody overflowY="auto" flex="1" minH={0}>
+            <ModalBody overflowY="auto" flex="1" minH={0} bg={modalBg}>
               <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={3}>
                 <Box>
                   <VStack justifyContent="space-between">
@@ -1181,7 +1184,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
                 </Alert>
               )}
             </ModalBody>
-            <ModalFooter mt="3">
+            <ModalFooter mt="3" bg={modalBg}>
               <HStack
                 justifyContent="space-between"
                 w="full"
