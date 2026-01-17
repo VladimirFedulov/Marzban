@@ -162,7 +162,7 @@ def generate_fake_subscription(
     for idx, note in enumerate(notes_to_use, start=1):
         inbound = _build_fake_inbound(protocol)
         settings = _build_fake_settings(protocol)
-        address = f"fake-{idx}.example.com"
+        address = "127.0.0.1"
         conf.add(
             remark=note,
             address=address,
