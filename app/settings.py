@@ -62,6 +62,11 @@ SETTINGS = [
         env_delimiter="|",
     ),
     SettingDefinition(
+        "SUBSCRIPTION_CUSTOM_NOTES_HWID_LIMIT",
+        "list[str]",
+        env_delimiter="|",
+    ),
+    SettingDefinition(
         "HWID_DEVICE_LIMIT_ENABLED",
         "str",
         allowed_values=("enabled", "disabled", "logging"),
@@ -178,6 +183,7 @@ def _refresh_subscription_notes():
         "expired": config_module.SUBSCRIPTION_CUSTOM_NOTES_EXPIRED,
         "limited": config_module.SUBSCRIPTION_CUSTOM_NOTES_LIMITED,
         "disabled": config_module.SUBSCRIPTION_CUSTOM_NOTES_DISABLED,
+        "hwid_limit": config_module.SUBSCRIPTION_CUSTOM_NOTES_HWID_LIMIT,
     }
 
 

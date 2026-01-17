@@ -81,6 +81,7 @@ def update_settings(
                 "expired": config_module.SUBSCRIPTION_CUSTOM_NOTES_EXPIRED,
                 "limited": config_module.SUBSCRIPTION_CUSTOM_NOTES_LIMITED,
                 "disabled": config_module.SUBSCRIPTION_CUSTOM_NOTES_DISABLED,
+                "hwid_limit": config_module.SUBSCRIPTION_CUSTOM_NOTES_HWID_LIMIT,
             }
         if key == "V2RAY_TEMPLATE_MAPPING":
             refresh_v2ray_subscription_templates()

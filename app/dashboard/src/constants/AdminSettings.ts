@@ -211,6 +211,13 @@ export const settingsGroups: SettingsGroup[] = [
         inputType: "textarea",
         delimiter: "|",
       },
+      {
+        key: "SUBSCRIPTION_CUSTOM_NOTES_HWID_LIMIT",
+        labelKey: "settings.subscriptionCustomNotesHwidLimit",
+        descriptionKey: "settings.subscriptionCustomNotesHwidLimitHelp",
+        inputType: "textarea",
+        delimiter: "|",
+      },
     ],
   },
   {
