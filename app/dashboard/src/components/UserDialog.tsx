@@ -516,7 +516,10 @@ export const UserDialog: FC<UserDialogProps> = () => {
           borderColor={colorMode === "dark" ? "gray.700" : "gray.200"}
           borderWidth="1px"
         >
-          <form onSubmit={form.handleSubmit(submit)}>
+          <form
+            onSubmit={form.handleSubmit(submit)}
+            style={{ display: "flex", flexDirection: "column", height: "100%" }}
+          >
             <ModalHeader pt={6}>
               <HStack gap={2}>
                 <Icon color="primary">
@@ -534,8 +537,8 @@ export const UserDialog: FC<UserDialogProps> = () => {
               </HStack>
             </ModalHeader>
             <ModalCloseButton mt={3} disabled={disabled} />
-            <ModalBody overflowY="auto">
-              <SimpleGrid minChildWidth="600px" spacing={3}>
+            <ModalBody overflowY="auto" flex="1" minH={0}>
+              <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={3}>
                 <Box>
                   <VStack justifyContent="space-between">
                     <Flex
