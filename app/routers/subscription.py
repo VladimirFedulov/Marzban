@@ -35,8 +35,8 @@ client_config = {
 }
 
 router = APIRouter(tags=['Subscription'], prefix=f'/{XRAY_SUBSCRIPTION_PATH}')
-_HWID_CLEANUP_CACHE: dict[int, float] = {}
-_HWID_CLEANUP_TTL_SECONDS = 300
+_SUBSCRIPTION_CACHE: dict[tuple, dict[str, object]] = {}
+_SUBSCRIPTION_CACHE_TTL_SECONDS = 60
 _RESET_STRATEGY_TO_DAYS = {
     UserDataLimitResetStrategy.day.value: 1,
     UserDataLimitResetStrategy.week.value: 7,
@@ -45,13 +45,40 @@ _RESET_STRATEGY_TO_DAYS = {
 }
 
 
-def _should_cleanup_hwid_devices(user_id: int) -> bool:
-    last_cleanup = _HWID_CLEANUP_CACHE.get(user_id)
-    now = time()
-    if last_cleanup is not None and now - last_cleanup < _HWID_CLEANUP_TTL_SECONDS:
-        return False
-    _HWID_CLEANUP_CACHE[user_id] = now
-    return True
+def _build_subscription_cache_key(
+    user: UserResponse,
+    config_format: str,
+    as_base64: bool,
+    reverse: bool,
+) -> tuple:
+    return (
+        user.id,
+        config_format,
+        as_base64,
+        reverse,
+        user.used_traffic,
+        user.data_limit,
+        user.expire,
+        user.status,
+        user.on_hold_expire_duration,
+    )
+
+
+def _get_cached_subscription(cache_key: tuple) -> str | None:
+    cached = _SUBSCRIPTION_CACHE.get(cache_key)
+    if not cached:
+        return None
+    if cached["expires_at"] < time():
+        _SUBSCRIPTION_CACHE.pop(cache_key, None)
+        return None
+    return str(cached["content"])
+
+
+def _set_cached_subscription(cache_key: tuple, content: str) -> None:
+    _SUBSCRIPTION_CACHE[cache_key] = {
+        "content": content,
+        "expires_at": time() + _SUBSCRIPTION_CACHE_TTL_SECONDS,
+    }
 
 
 def enforce_hwid_device_limit(
@@ -75,19 +102,6 @@ def enforce_hwid_device_limit(
         if mode == "logging":
             return True, None
         return False, "missing_hwid"
-
-    if _should_cleanup_hwid_devices(dbuser.id):
-        try:
-            crud.delete_expired_user_hwid_devices(
-                db=db,
-                dbuser=dbuser,
-                retention_days=config_module.HWID_DEVICE_RETENTION_DAYS,
-            )
-        except OperationalError:
-            logger.warning(
-                "Failed to cleanup expired HWID devices for user %s due to database error; allowing subscription.",
-                dbuser.id,
-            )
 
     if mode == "logging":
         try:
@@ -311,12 +325,21 @@ def user_subscription(
 
     crud.update_user_sub(db, dbuser, user_agent)
     config = _resolve_client_config(user_agent)
-    conf = generate_subscription(
+    cache_key = _build_subscription_cache_key(
         user=user,
         config_format=config["config_format"],
         as_base64=config["as_base64"],
         reverse=config["reverse"],
     )
+    conf = _get_cached_subscription(cache_key)
+    if conf is None:
+        conf = generate_subscription(
+            user=user,
+            config_format=config["config_format"],
+            as_base64=config["as_base64"],
+            reverse=config["reverse"],
+        )
+        _set_cached_subscription(cache_key, conf)
     return Response(content=conf, media_type=config["media_type"], headers=response_headers)
 
 
@@ -403,9 +426,20 @@ def user_subscription_with_client_type(
         )
 
     config = client_config.get(client_type)
-    conf = generate_subscription(user=user,
-                                 config_format=config["config_format"],
-                                 as_base64=config["as_base64"],
-                                 reverse=config["reverse"])
+    cache_key = _build_subscription_cache_key(
+        user=user,
+        config_format=config["config_format"],
+        as_base64=config["as_base64"],
+        reverse=config["reverse"],
+    )
+    conf = _get_cached_subscription(cache_key)
+    if conf is None:
+        conf = generate_subscription(
+            user=user,
+            config_format=config["config_format"],
+            as_base64=config["as_base64"],
+            reverse=config["reverse"],
+        )
+        _set_cached_subscription(cache_key, conf)
 
     return Response(content=conf, media_type=config["media_type"], headers=response_headers)
