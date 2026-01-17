@@ -264,16 +264,6 @@ export const UserDialog: FC<UserDialogProps> = () => {
   const [error, setError] = useState<string | null>("");
   const toast = useToast();
   const { t, i18n } = useTranslation();
-
-  const { colorMode } = useColorMode();
-
-  const [usageVisible, setUsageVisible] = useState(false);
-  const handleUsageToggle = () => {
-    setUsageVisible((current) => !current);
-  };
-
-  const form = useForm<FormType>({
-    defaultValues: getDefaultValues(),
     resolver: zodResolver(schema),
   });
 
@@ -288,52 +278,6 @@ export const UserDialog: FC<UserDialogProps> = () => {
     []
   );
 
-  const [dataLimit, userStatus] = useWatch({
-    control: form.control,
-    name: ["data_limit", "status"],
-  });
-
-  const usageTitle = t("userDialog.total");
-  const [usage, setUsage] = useState(createUsageConfig(colorMode, usageTitle));
-  const [usageFilter, setUsageFilter] = useState("1m");
-  const [hwidDevicesCount, setHwidDevicesCount] = useState<number | null>(null);
-  const [hwidDevices, setHwidDevices] = useState<HwidDevice[] | null>(null);
-  const [hwidDeviceDeletingId, setHwidDeviceDeletingId] = useState<number | null>(
-    null
-  );
-  const [copiedHwidId, setCopiedHwidId] = useState<number | null>(null);
-  const fetchUsageWithFilter = (query: FilterUsageType) => {
-    fetchUserUsage(editingUser!, query).then((data: any) => {
-      const labels = [];
-      const series = [];
-      for (const key in data.usages) {
-        series.push(data.usages[key].used_traffic);
-        labels.push(data.usages[key].node_name);
-      }
-      setUsage(createUsageConfig(colorMode, usageTitle, series, labels));
-    });
-  };
-
-  useEffect(() => {
-    if (editingUser) {
-      form.reset(formatUser(editingUser));
-
-      fetchUsageWithFilter({
-        start: dayjs().utc().subtract(30, "day").format("YYYY-MM-DDTHH:00:00"),
-      });
-
-      fetch(`/user/${editingUser.username}/hwid-devices`, {
-        method: "GET",
-      })
-        .then((data: { devices?: HwidDevice[] }) => {
-          const devices = data?.devices ?? [];
-          setHwidDevices(devices);
-          setHwidDevicesCount(devices.length);
-        })
-        .catch(() => {
-          setHwidDevicesCount(null);
-          setHwidDevices(null);
-        });
     } else {
       setHwidDevicesCount(null);
       setHwidDevices(null);
