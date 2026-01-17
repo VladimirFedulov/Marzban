@@ -322,6 +322,8 @@
   "settings.subscriptionCustomNotesLimitedHelp": "Notes shown to limited users in subscriptions.",
   "settings.subscriptionCustomNotesDisabled": "Custom notes for disabled users (use | to separate)",
   "settings.subscriptionCustomNotesDisabledHelp": "Notes shown to disabled users in subscriptions.",
+  "settings.subscriptionCustomNotesHwidLimit": "Custom notes for HWID limit rejections (use | to separate)",
+  "settings.subscriptionCustomNotesHwidLimitHelp": "Notes shown when HWID limits block subscription access.",
   "settings.hwidDeviceLimitEnabled": "HWID device limit mode",
   "settings.hwidDeviceLimitEnabledHelp": "Choose how HWID device limits are enforced.",
   "settings.hwidLimitEnabled": "Enabled",

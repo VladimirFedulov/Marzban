@@ -322,6 +322,8 @@
   "settings.subscriptionCustomNotesLimitedHelp": "Заметки, показываемые ограниченным пользователям в подписке.",
   "settings.subscriptionCustomNotesDisabled": "Заметки для отключенных (разделяйте |)",
   "settings.subscriptionCustomNotesDisabledHelp": "Заметки, показываемые отключённым пользователям в подписке.",
+  "settings.subscriptionCustomNotesHwidLimit": "Заметки при блокировке по лимиту HWID (разделяйте |)",
+  "settings.subscriptionCustomNotesHwidLimitHelp": "Заметки, показываемые при блокировке подписки по лимиту HWID.",
   "settings.hwidDeviceLimitEnabled": "Режим лимита HWID",
   "settings.hwidDeviceLimitEnabledHelp": "Выберите режим применения лимита устройств по HWID.",
   "settings.hwidLimitEnabled": "Включено",

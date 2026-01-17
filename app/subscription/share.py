@@ -5,6 +5,7 @@ from collections import defaultdict
 from datetime import datetime as dt
 from datetime import timedelta
 from typing import TYPE_CHECKING, List, Literal, Union
+from uuid import uuid4
 
 from jdatetime import date as jd
 
@@ -74,6 +75,111 @@ def get_status_notes(status: str | object) -> list[str]:
     if hasattr(status, "value"):
         status = status.value
     return config_module.SUBSCRIPTION_CUSTOM_NOTES.get(status, [])
+
+
+def get_hwid_limit_notes() -> list[str]:
+    return config_module.SUBSCRIPTION_CUSTOM_NOTES.get("hwid_limit", [])
+
+
+def _fake_protocol_for_format(config_format: str) -> str:
+    if config_format == "outline":
+        return "shadowsocks"
+    return "vmess"
+
+
+def _build_fake_inbound(protocol: str) -> dict:
+    return {
+        "protocol": protocol,
+        "network": "tcp",
+        "port": 443,
+        "tls": "tls",
+        "sni": "example.com",
+        "host": "",
+        "path": "",
+        "header_type": "none",
+        "ais": "",
+        "fp": "",
+        "pbk": "",
+        "sid": "",
+        "spx": "",
+        "alpn": "",
+        "mux_enable": False,
+        "fragment_setting": "",
+        "noise_setting": "",
+        "random_user_agent": False,
+        "allowinsecure": "",
+        "multiMode": False,
+        "downloadSettings": {},
+    }
+
+
+def _build_fake_settings(protocol: str) -> dict:
+    if protocol == "shadowsocks":
+        return {
+            "password": secrets.token_urlsafe(16),
+            "method": "aes-128-gcm",
+        }
+    return {
+        "id": str(uuid4()),
+        "flow": "",
+    }
+
+
+def generate_fake_subscription(
+    user: "UserResponse",
+    config_format: Literal["v2ray", "clash-meta", "clash", "sing-box", "outline", "v2ray-json"],
+    as_base64: bool,
+    reverse: bool,
+    notes: list[str],
+) -> str:
+    if not notes:
+        return ""
+
+    format_variables = setup_format_variables(user.model_dump())
+    protocol = _fake_protocol_for_format(config_format)
+    format_variables.update({"PROTOCOL": protocol, "TRANSPORT": "tcp"})
+    formatted_notes = [
+        note.format_map(format_variables)
+        for note in notes
+    ]
+
+    if config_format == "v2ray":
+        conf: Union[V2rayShareLink, V2rayJsonConfig, SingBoxConfiguration, ClashConfiguration, ClashMetaConfiguration, OutlineConfiguration] = V2rayShareLink()
+    elif config_format == "clash-meta":
+        conf = ClashMetaConfiguration()
+    elif config_format == "clash":
+        conf = ClashConfiguration()
+    elif config_format == "sing-box":
+        conf = SingBoxConfiguration()
+    elif config_format == "outline":
+        conf = OutlineConfiguration()
+    elif config_format == "v2ray-json":
+        conf = V2rayJsonConfig()
+    else:
+        raise ValueError(f'Unsupported format "{config_format}"')
+
+    notes_to_use = formatted_notes[:1] if config_format == "outline" else formatted_notes
+    for idx, note in enumerate(notes_to_use, start=1):
+        inbound = _build_fake_inbound(protocol)
+        settings = _build_fake_settings(protocol)
+        address = f"fake-{idx}.example.com"
+        conf.add(
+            remark=note,
+            address=address,
+            inbound=inbound,
+            settings=settings,
+        )
+
+    if config_format == "v2ray":
+        links = list(reversed(conf.links)) if reverse else conf.links
+        config = "\n".join(links)
+    else:
+        config = conf.render(reverse=reverse)
+        if isinstance(config, list):
+            config = "\n".join(config)
+    if as_base64:
+        config = base64.b64encode(config.encode()).decode()
+    return config
 
 
 def generate_clash_subscription(

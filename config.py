@@ -196,10 +196,16 @@ SUBSCRIPTION_CUSTOM_NOTES_DISABLED = config(
     default="",
     cast=_split_subscription_notes,
 )
+SUBSCRIPTION_CUSTOM_NOTES_HWID_LIMIT = config(
+    "SUBSCRIPTION_CUSTOM_NOTES_HWID_LIMIT",
+    default="",
+    cast=_split_subscription_notes,
+)
 SUBSCRIPTION_CUSTOM_NOTES = {
     "expired": SUBSCRIPTION_CUSTOM_NOTES_EXPIRED,
     "limited": SUBSCRIPTION_CUSTOM_NOTES_LIMITED,
     "disabled": SUBSCRIPTION_CUSTOM_NOTES_DISABLED,
+    "hwid_limit": SUBSCRIPTION_CUSTOM_NOTES_HWID_LIMIT,
 }
 
 # HWID device limit
