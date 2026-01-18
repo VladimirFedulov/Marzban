@@ -256,6 +256,10 @@ def apply_db_overrides(db: Session) -> dict[str, Any]:
         if not definition:
             continue
         parsed_value = parse_setting_value(definition, raw_value)
+        if key in {"XRAY_SUBSCRIPTION_PATH", "XRAY_SUBSCRIPTION_URL_PREFIX"}:
+            parsed_value = str(parsed_value).strip().strip("/")
+        if key == "XRAY_SUBSCRIPTION_PATH" and not parsed_value:
+            continue
         setattr(config_module, key, parsed_value)
         if key.startswith("SUBSCRIPTION_CUSTOM_NOTES_"):
             _refresh_subscription_notes()
