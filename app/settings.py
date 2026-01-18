@@ -2,6 +2,7 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
+from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 
 import config as config_module
@@ -243,6 +244,8 @@ def refresh_v2ray_subscription_templates():
 
 
 def get_db_settings(db: Session) -> dict[str, Any]:
+    if not inspect(db.get_bind()).has_table(AppSetting.__tablename__):
+        return {}
     return {setting.key: setting.value for setting in db.query(AppSetting).all()}
 
 
