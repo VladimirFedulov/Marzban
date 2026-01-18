@@ -886,29 +886,6 @@ export const UserDialog: FC<UserDialogProps> = () => {
                     </FormErrorMessage>
                   </FormControl>
                 </GridItem>
-                {isEditing && usageVisible && (
-                  <GridItem pt={6} colSpan={{ base: 1, md: 2 }}>
-                    <VStack gap={4}>
-                      <UsageFilter
-                        defaultValue={usageFilter}
-                        onChange={(filter, query) => {
-                          setUsageFilter(filter);
-                          fetchUsageWithFilter(query);
-                        }}
-                      />
-                      <Box
-                        width={{ base: "100%", md: "70%" }}
-                        justifySelf="center"
-                      >
-                        <ReactApexChart
-                          options={usage.options}
-                          series={usage.series}
-                          type="donut"
-                        />
-                      </Box>
-                    </VStack>
-                  </GridItem>
-                )}
               </Grid>
               <Box mt={4} w="full">
                 <VStack align="stretch" spacing={3}>
@@ -1166,6 +1143,29 @@ export const UserDialog: FC<UserDialogProps> = () => {
                   )}
                 </VStack>
               </Box>
+              {isEditing && usageVisible && (
+                <Box mt={6}>
+                  <VStack gap={4}>
+                    <UsageFilter
+                      defaultValue={usageFilter}
+                      onChange={(filter, query) => {
+                        setUsageFilter(filter);
+                        fetchUsageWithFilter(query);
+                      }}
+                    />
+                    <Box
+                      width={{ base: "100%", md: "70%" }}
+                      justifySelf="center"
+                    >
+                      <ReactApexChart
+                        options={usage.options}
+                        series={usage.series}
+                        type="donut"
+                      />
+                    </Box>
+                  </VStack>
+                </Box>
+              )}
               {error && (
                 <Alert
                   mt="3"
