@@ -82,7 +82,21 @@
     <p>Data Limit: {% if not user.data_limit %}∞{% else %}{{ user.data_limit | bytesformat }}{% endif %}</p>
     <p>Data Used: {{ user.used_traffic | bytesformat }}{% if user.data_limit_reset_strategy != 'no_reset' %} (resets
         every {{ user.data_limit_reset_strategy.value }}){% endif %}</p>
-    <p>Days to Next Reset: {{ days_to_next_reset }}</p>
+    <p>
+        Days to Next Reset:
+        {% if days_to_next_reset is not none %}
+        {% set remainder_10 = days_to_next_reset % 10 %}
+        {% set remainder_100 = days_to_next_reset % 100 %}
+        {{ days_to_next_reset }}
+        {% if remainder_10 == 1 and remainder_100 != 11 %}
+        день
+        {% elif remainder_10 in [2, 3, 4] and remainder_100 not in [12, 13, 14] %}
+        дня
+        {% else %}
+        дней
+        {% endif %}
+        {% endif %}
+    </p>
     <p>Next Reset At: {% if next_reset_at %}{{ next_reset_at | datetime }}{% else %}∞{% endif %}</p>
     <p>Expiration Date:
         {% if not user.expire %}
