@@ -224,7 +224,7 @@ def record_user_usages():
                 values(users_usage=Admin.users_usage + bindparam('value'))
             safe_execute(db, admin_update_stmt, admin_data)
 
-    if DISABLE_RECORDING_NODE_USAGE:
+    if config_module.DISABLE_RECORDING_NODE_USAGE:
         return
 
     for node_id, params in api_params.items():
