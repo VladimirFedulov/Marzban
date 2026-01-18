@@ -347,6 +347,7 @@ def user_subscription(
         reverse=config["reverse"],
     )
     conf = _get_cached_subscription(cache_key)
+    cache_status = "hit" if conf is not None else "miss"
     if conf is None:
         conf = generate_subscription(
             user=user,
@@ -355,6 +356,8 @@ def user_subscription(
             reverse=config["reverse"],
         )
         _set_cached_subscription(cache_key, conf)
+    if config_module.DEBUG:
+        response_headers["x-subscription-cache"] = cache_status
     return Response(content=conf, media_type=config["media_type"], headers=response_headers)
 
 
@@ -448,6 +451,7 @@ def user_subscription_with_client_type(
         reverse=config["reverse"],
     )
     conf = _get_cached_subscription(cache_key)
+    cache_status = "hit" if conf is not None else "miss"
     if conf is None:
         conf = generate_subscription(
             user=user,
@@ -456,5 +460,7 @@ def user_subscription_with_client_type(
             reverse=config["reverse"],
         )
         _set_cached_subscription(cache_key, conf)
+    if config_module.DEBUG:
+        response_headers["x-subscription-cache"] = cache_status
 
     return Response(content=conf, media_type=config["media_type"], headers=response_headers)
