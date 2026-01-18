@@ -5,11 +5,8 @@ from app.db import Session, crud, get_db
 from config import SUDOERS
 from fastapi import Depends, HTTPException
 from datetime import datetime, timezone, timedelta
-import logging
 
 from app.utils.jwt import get_subscription_payload
-
-logger = logging.getLogger("uvicorn.error")
 
 
 def validate_admin(db: Session, username: str, password: str) -> Optional[AdminValidationResult]:
@@ -74,22 +71,13 @@ def get_validated_sub(
 ) -> UserResponse:
     sub = get_subscription_payload(token)
     if not sub:
-        logger.info("Subscription validation failed: invalid token.")
         raise HTTPException(status_code=404, detail="Not Found")
 
     dbuser = crud.get_user(db, sub['username'])
     if not dbuser or dbuser.created_at > sub['created_at']:
-        logger.info(
-            "Subscription validation failed: user missing or recreated for username %s.",
-            sub["username"],
-        )
         raise HTTPException(status_code=404, detail="Not Found")
 
     if dbuser.sub_revoked_at and dbuser.sub_revoked_at > sub['created_at']:
-        logger.info(
-            "Subscription validation failed: revoked for username %s.",
-            sub["username"],
-        )
         raise HTTPException(status_code=404, detail="Not Found")
 
     return dbuser
