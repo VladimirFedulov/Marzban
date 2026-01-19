@@ -216,10 +216,7 @@ def _resolve_client_config(user_agent: str) -> dict:
         return client_config["v2ray"]
 
     if (config_module.USE_CUSTOM_JSON_DEFAULT or config_module.USE_CUSTOM_JSON_FOR_HAPP) and re.match(r'^Happ/(\d+\.\d+\.\d+)', user_agent):
-        version_str = re.match(r'^Happ/(\d+\.\d+\.\d+)', user_agent).group(1)
-        if LooseVersion(version_str) >= LooseVersion("1.11.0"):
-            return client_config["v2ray-json"]
-        return client_config["v2ray"]
+        return client_config["v2ray-json"]
 
     if config_module.USE_CUSTOM_JSON_DEFAULT or config_module.USE_CUSTOM_JSON_FOR_NPVTUNNEL:
         if "ktor-client" in user_agent:
