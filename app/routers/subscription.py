@@ -1,4 +1,5 @@
 import re
+from threading import Lock
 from datetime import datetime, timedelta
 from distutils.version import LooseVersion
 from math import ceil
@@ -35,6 +36,7 @@ client_config = {
 
 router = APIRouter(tags=['Subscription'], prefix=f'/{config_module.XRAY_SUBSCRIPTION_PATH}')
 _SUBSCRIPTION_CACHE: dict[tuple, dict[str, object]] = {}
+_SUBSCRIPTION_CACHE_LOCK = Lock()
 _SUBSCRIPTION_CACHE_TTL_SECONDS = 60
 _SUBSCRIPTION_METADATA_UPDATE_SECONDS = 60
 _RESET_STRATEGY_TO_DAYS = {
@@ -65,27 +67,29 @@ def _build_subscription_cache_key(
 
 
 def _get_cached_subscription(cache_key: tuple) -> str | None:
-    cached = _SUBSCRIPTION_CACHE.get(cache_key)
-    if not cached:
-        return None
-    if cached["expires_at"] < time():
-        _SUBSCRIPTION_CACHE.pop(cache_key, None)
-        return None
-    return str(cached["content"])
+    with _SUBSCRIPTION_CACHE_LOCK:
+        cached = _SUBSCRIPTION_CACHE.get(cache_key)
+        if not cached:
+            return None
+        if cached["expires_at"] < time():
+            _SUBSCRIPTION_CACHE.pop(cache_key, None)
+            return None
+        return str(cached["content"])
 
 
 def _set_cached_subscription(cache_key: tuple, content: str) -> None:
     user_key, config_format, as_base64, reverse, *_ = cache_key
-    keys_to_remove = [
-        key for key in _SUBSCRIPTION_CACHE.keys()
-        if key[:4] == (user_key, config_format, as_base64, reverse)
-    ]
-    for key in keys_to_remove:
-        _SUBSCRIPTION_CACHE.pop(key, None)
-    _SUBSCRIPTION_CACHE[cache_key] = {
-        "content": content,
-        "expires_at": time() + _SUBSCRIPTION_CACHE_TTL_SECONDS,
-    }
+    with _SUBSCRIPTION_CACHE_LOCK:
+        keys_to_remove = [
+            key for key in list(_SUBSCRIPTION_CACHE)
+            if key[:4] == (user_key, config_format, as_base64, reverse)
+        ]
+        for key in keys_to_remove:
+            _SUBSCRIPTION_CACHE.pop(key, None)
+        _SUBSCRIPTION_CACHE[cache_key] = {
+            "content": content,
+            "expires_at": time() + _SUBSCRIPTION_CACHE_TTL_SECONDS,
+        }
 
 
 def _should_update_subscription_metadata(dbuser: User) -> bool:
@@ -356,8 +360,7 @@ def user_subscription(
             reverse=config["reverse"],
         )
         _set_cached_subscription(cache_key, conf)
-    if config_module.DEBUG:
-        response_headers["x-subscription-cache"] = cache_status
+    response_headers["x-subscription-cache"] = cache_status
     return Response(content=conf, media_type=config["media_type"], headers=response_headers)
 
 
@@ -460,7 +463,6 @@ def user_subscription_with_client_type(
             reverse=config["reverse"],
         )
         _set_cached_subscription(cache_key, conf)
-    if config_module.DEBUG:
-        response_headers["x-subscription-cache"] = cache_status
+    response_headers["x-subscription-cache"] = cache_status
 
     return Response(content=conf, media_type=config["media_type"], headers=response_headers)
