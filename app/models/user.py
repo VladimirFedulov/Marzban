@@ -1,7 +1,8 @@
 import re
 import secrets
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
+from math import ceil
 from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -291,6 +292,9 @@ class UserResponse(User):
     subscription_url: str = ""
     proxies: dict
     excluded_inbounds: Dict[ProxyTypes, List[str]] = {}
+    days_to_next_reset: int | str | None = None
+    next_reset_at: datetime | None = None
+    last_traffic_reset_time: datetime | None = Field(None, exclude=True)
 
     admin: Optional[Admin] = None
     model_config = ConfigDict(from_attributes=True)
@@ -310,6 +314,14 @@ class UserResponse(User):
             url_prefix = (config_module.XRAY_SUBSCRIPTION_URL_PREFIX).replace('*', salt)
             token = create_subscription_token(self.username)
             self.subscription_url = f"{url_prefix}/{config_module.XRAY_SUBSCRIPTION_PATH}/{token}"
+        return self
+
+    @model_validator(mode="after")
+    def validate_reset_info(self):
+        if self.days_to_next_reset is None and self.next_reset_at is None:
+            days_to_next_reset, next_reset_at = get_next_reset_info(self)
+            self.days_to_next_reset = days_to_next_reset
+            self.next_reset_at = next_reset_at
         return self
 
     @field_validator("proxies", mode="before")
@@ -384,3 +396,32 @@ class UserUsagesResponse(BaseModel):
 
 class UsersUsagesResponse(BaseModel):
     usages: List[UserUsageResponse]
+
+
+_RESET_STRATEGY_TO_DAYS = {
+    UserDataLimitResetStrategy.day.value: 1,
+    UserDataLimitResetStrategy.week.value: 7,
+    UserDataLimitResetStrategy.month.value: 30,
+    UserDataLimitResetStrategy.year.value: 365,
+}
+
+
+def get_next_reset_info(dbuser) -> tuple[str | int, datetime | None]:
+    reset_strategy = dbuser.data_limit_reset_strategy
+    if isinstance(reset_strategy, UserDataLimitResetStrategy):
+        reset_strategy = reset_strategy.value
+    if not reset_strategy or reset_strategy == UserDataLimitResetStrategy.no_reset.value:
+        return "∞", None
+
+    reset_days = _RESET_STRATEGY_TO_DAYS.get(reset_strategy)
+    if not reset_days:
+        return "∞", None
+
+    last_reset_time = getattr(dbuser, "last_traffic_reset_time", None)
+    if not last_reset_time:
+        return "∞", None
+
+    next_reset_at = last_reset_time + timedelta(days=reset_days)
+    seconds_left = (next_reset_at - datetime.utcnow()).total_seconds()
+    days_to_next_reset = max(0, ceil(seconds_left / (24 * 3600)))
+    return days_to_next_reset, next_reset_at

@@ -2,7 +2,6 @@ import re
 from threading import Lock
 from datetime import datetime, timedelta
 from distutils.version import LooseVersion
-from math import ceil
 from time import time
 
 from fastapi import APIRouter, Depends, Header, Path, Request, Response
@@ -14,7 +13,7 @@ from app import logger
 from app.db import Session, crud, get_db
 from app.db.models import User
 from app.dependencies import get_validated_sub, validate_dates
-from app.models.user import SubscriptionUserResponse, UserDataLimitResetStrategy, UserResponse
+from app.models.user import SubscriptionUserResponse, UserResponse, get_next_reset_info
 from app.subscription.share import (
     encode_title,
     generate_fake_subscription,
@@ -39,14 +38,6 @@ _SUBSCRIPTION_CACHE: dict[tuple, dict[str, object]] = {}
 _SUBSCRIPTION_CACHE_LOCK = Lock()
 _SUBSCRIPTION_CACHE_TTL_SECONDS = 60
 _SUBSCRIPTION_METADATA_UPDATE_SECONDS = 60
-_RESET_STRATEGY_TO_DAYS = {
-    UserDataLimitResetStrategy.day.value: 1,
-    UserDataLimitResetStrategy.week.value: 7,
-    UserDataLimitResetStrategy.month.value: 30,
-    UserDataLimitResetStrategy.year.value: 365,
-}
-
-
 def _build_subscription_cache_key(
     user: UserResponse,
     config_format: str,
@@ -234,24 +225,6 @@ def get_subscription_user_info(user: UserResponse) -> dict:
         "total": user.data_limit if user.data_limit is not None else 0,
         "expire": user.expire if user.expire is not None else 0,
     }
-
-
-def get_next_reset_info(dbuser: User) -> tuple[str | int, datetime | None]:
-    reset_strategy = dbuser.data_limit_reset_strategy
-    if isinstance(reset_strategy, UserDataLimitResetStrategy):
-        reset_strategy = reset_strategy.value
-    if not reset_strategy or reset_strategy == UserDataLimitResetStrategy.no_reset.value:
-        return "∞", None
-
-    reset_days = _RESET_STRATEGY_TO_DAYS.get(reset_strategy)
-    if not reset_days:
-        return "∞", None
-
-    last_reset_time = dbuser.last_traffic_reset_time
-    next_reset_at = last_reset_time + timedelta(days=reset_days)
-    seconds_left = (next_reset_at - datetime.utcnow()).total_seconds()
-    days_to_next_reset = max(0, ceil(seconds_left / (24 * 3600)))
-    return days_to_next_reset, next_reset_at
 
 
 def _user_agent_matches(rule: str, user_agent: str) -> bool:
