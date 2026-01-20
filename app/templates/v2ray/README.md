@@ -48,6 +48,7 @@ Now, change these variables with your files' names.
 ```shell
 V2RAY_SUBSCRIPTION_TEMPLATE="v2ray/default.json"
 V2RAY_SETTINGS_TEMPLATE="v2ray/settings.json"
+V2RAY_META_CONFIG="v2ray/meta_config.json"
 ```
 Now, restart your Marzban and enjoy.
 
