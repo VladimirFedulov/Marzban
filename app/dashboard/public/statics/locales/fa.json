@@ -242,7 +242,7 @@
   "settings.muxTemplateHelp": "فایل قالب Mux.",
   "settings.v2raySubscriptionTemplateHelp": "فایل قالب اشتراک V2ray پیش‌فرض.",
   "settings.v2raySettingsTemplateHelp": "فایل قالب تنظیمات V2ray.",
-  "settings.v2rayMetaConfigHelp": "فایل قالب پیکربندی meta V2ray.",
+  "settings.v2rayMetaConfigHelp": "فایل قالب پیکربندی meta V2ray (برای برنامه Happ و اشتراک‌های JSON استفاده می‌شود).",
   "settings.v2rayTemplateMappingHelp": "نگاشت‌های جداشده با ویرگول: client:template.json (مثلاً v2rayn:custom.json).",
   "settings.externalConfigHelp": "مسیر یا URL پیکربندی خارجی برای اشتراک‌ها.",
   "settings.xraySubscriptionUrlPrefix": "پیشوند URL اشتراک Xray",
