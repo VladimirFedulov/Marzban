@@ -249,7 +249,7 @@
   "settings.muxTemplateHelp": "Mux template file.",
   "settings.v2raySubscriptionTemplateHelp": "Default V2ray subscription template file.",
   "settings.v2raySettingsTemplateHelp": "V2ray settings template file.",
-  "settings.v2rayMetaConfigHelp": "V2ray meta config template file.",
+  "settings.v2rayMetaConfigHelp": "V2ray meta config template file (used for the Happ app and JSON subscriptions).",
   "settings.v2rayTemplateMappingHelp": "Comma-separated mappings: client:template.json (e.g. v2rayn:custom.json).",
   "settings.externalConfigHelp": "External config path or URL applied to subscriptions.",
   "settings.xraySubscriptionUrlPrefix": "Xray subscription URL prefix",

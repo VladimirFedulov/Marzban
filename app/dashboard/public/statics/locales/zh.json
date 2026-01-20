@@ -237,7 +237,7 @@
   "settings.muxTemplateHelp": "Mux 模板文件。",
   "settings.v2raySubscriptionTemplateHelp": "默认 V2ray 订阅模板文件。",
   "settings.v2raySettingsTemplateHelp": "V2ray 设置模板文件。",
-  "settings.v2rayMetaConfigHelp": "V2ray Meta 配置模板文件。",
+  "settings.v2rayMetaConfigHelp": "V2ray Meta 配置模板文件（用于 Happ 应用和 JSON 订阅）。",
   "settings.v2rayTemplateMappingHelp": "逗号分隔映射：client:template.json（例如 v2rayn:custom.json）。",
   "settings.externalConfigHelp": "应用于订阅的外部配置路径或 URL。",
   "settings.xraySubscriptionUrlPrefix": "Xray 订阅 URL 前缀",

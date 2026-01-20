@@ -249,7 +249,7 @@
   "settings.muxTemplateHelp": "Файл шаблона Mux.",
   "settings.v2raySubscriptionTemplateHelp": "Файл шаблона подписки V2ray по умолчанию.",
   "settings.v2raySettingsTemplateHelp": "Файл шаблона настроек V2ray.",
-  "settings.v2rayMetaConfigHelp": "Файл шаблона meta-конфига V2ray.",
+  "settings.v2rayMetaConfigHelp": "Файл шаблона meta-конфига V2ray (используется для приложения Happ и JSON-подписок).",
   "settings.v2rayTemplateMappingHelp": "Сопоставления через запятую: клиент:шаблон.json (например, v2rayn:custom.json).",
   "settings.externalConfigHelp": "Путь или URL внешнего конфига, применяемого к подпискам.",
   "settings.xraySubscriptionUrlPrefix": "URL-префикс подписок Xray",
