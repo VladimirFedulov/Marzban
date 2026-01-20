@@ -245,6 +245,12 @@ export const settingsGroups: SettingsGroup[] = [
         inputType: "text",
       },
       {
+        key: "V2RAY_META_CONFIG",
+        labelKey: "settings.v2rayMetaConfig",
+        descriptionKey: "settings.v2rayMetaConfigHelp",
+        inputType: "text",
+      },
+      {
         key: "V2RAY_TEMPLATE_MAPPING",
         labelKey: "settings.v2rayTemplateMapping",
         descriptionKey: "settings.v2rayTemplateMappingHelp",

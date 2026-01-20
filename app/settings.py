@@ -86,6 +86,7 @@ SETTINGS = [
     SettingDefinition("MUX_TEMPLATE", "str"),
     SettingDefinition("V2RAY_SUBSCRIPTION_TEMPLATE", "str"),
     SettingDefinition("V2RAY_SETTINGS_TEMPLATE", "str"),
+    SettingDefinition("V2RAY_META_CONFIG", "str"),
     SettingDefinition("V2RAY_TEMPLATE_MAPPING", "str"),
     SettingDefinition("XRAY_SUBSCRIPTION_URL_PREFIX", "str", requires_restart=True),
     SettingDefinition("XRAY_SUBSCRIPTION_PATH", "str", requires_restart=True),
