@@ -8,10 +8,10 @@
 </p>
 
 <h1 align="center"/>Marzban</h1>
-<h1 align="center"/>Latest Stable ver: 0.8.4.1</h1>
+<h1 align="center"/>Latest stable version: <a href="https://github.com/Gozargah/Marzban/releases">releases</a></h1>
 
 <p align="center">
-    Unified GUI Censorship Resistant Solution Powered by <a href="https://github.com/XTLS/Xray-core">Xray</a>
+    Unified GUI censorship-resistant solution powered by <a href="https://github.com/XTLS/Xray-core">Xray</a>
 </p>
 
 <br/>
@@ -29,7 +29,7 @@
         <img src="https://img.shields.io/badge/telegram-group-blue?style=flat-square&logo=telegram" />
     </a>
     <a href="#">
-        <img src="https://img.shields.io/badge/twitter-commiunity-blue?style=flat-square&logo=twitter" />
+        <img src="https://img.shields.io/badge/twitter-community-blue?style=flat-square&logo=twitter" />
     </a>
     <a href="#">
         <img src="https://img.shields.io/github/stars/gozargah/marzban?style=social" />
@@ -74,17 +74,16 @@
 - [Marzban CLI](#marzban-cli)
 - [Marzban Node](#marzban-node)
 - [Webhook notifications](#webhook-notifications)
-- [Donation](#donation)
 - [License](#license)
 - [Contributors](#contributors)
 
 # Overview
 
-Marzban (the Persian word for "border guard" - pronounced /mærz'ban/) is a proxy management tool that provides a simple and easy-to-use user interface for managing hundreds of proxy accounts powered by [Xray-core](https://github.com/XTLS/Xray-core) and built using Python and Reactjs.
+Marzban (the Persian word for "border guard" - pronounced /mærz'ban/) is a proxy management tool that provides a simple and easy-to-use user interface for managing hundreds of proxy accounts powered by [Xray-core](https://github.com/XTLS/Xray-core) and built using Python and React.
 
 ## Why using Marzban?
 
-Marzban is user-friendly, feature-rich and reliable. It lets you to create different proxies for your users without any complicated configuration. Using its built-in web UI, you are able to monitor, modify and limit users.
+Marzban is user-friendly, feature-rich and reliable. It lets you create different proxies for your users without complicated configuration. Using its built-in web UI, you can monitor, modify and limit users.
 
 ### Features
 
@@ -398,9 +397,9 @@ For more detailed information and installation instructions, please refer to the
 
 # Webhook notifications
 
-You can set a webhook address and Marzban will send the notifications to that address.
+You can set a webhook address and Marzban will send notifications to that address.
 
-the requests will be sent as a post request to the adress provided by `WEBHOOK_ADDRESS` with `WEBHOOK_SECRET` as `x-webhook-secret` in the headers.
+The requests are sent as a POST request to the address provided by `WEBHOOK_ADDRESS` with `WEBHOOK_SECRET` as `x-webhook-secret` in the headers.
 
 Example request sent from Marzban:
 
@@ -421,23 +420,11 @@ Body:
 {"username": "marzban_test_user", "action": "user_updated", "enqueued_at": 1680506457.636369, "tries": 0}
 ```
 
-Different action typs are: `user_created`, `user_updated`, `user_deleted`, `user_limited`, `user_expired`, `user_disabled`, `user_enabled`
-
-# Donation
-
-If you found Marzban useful and would like to support its development, you can make a donation in one of the following crypto networks:
-
-- TRON network (TRC20): `TX8kJoDcowQPBFTYHAJR36GyoUKP1Xwzkb`
-- ETH, BNB, MATIC network (ERC20, BEP20): `0xFdc9ad32454FA4fc4733270FCc12ddBFb68b83F7`
-- Bitcoin network: `bc1qpys2nefgsjjgae3g3gqy9crsv3h3rm96tlkz0v`
-- Dogecoin network: `DJAocBAu8y6LwhDKUktLAyzV8xyoFeHH6R`
-- TON network: `EQAVf-7hAXHlF-jmrKE44oBwN7HGQFVBLAtrOsev5K4qR4P8`
-
-Thank you for your support!
+Different action types are: `user_created`, `user_updated`, `user_deleted`, `user_limited`, `user_expired`, `user_disabled`, `user_enabled`
 
 # License
 
-Made in [Unknown!] and Published under [AGPL-3.0](./LICENSE).
+Published under [AGPL-3.0](./LICENSE).
 
 # Contributors
 
