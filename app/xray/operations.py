@@ -385,7 +385,7 @@ def connect_node(node_id, config=None):
 
 
 @threaded_function
-def restart_node(node_id, config=None):
+def restart_node(node_id, config=None, reason: str | None = None):
     with GetDB() as db:
         dbnode = crud.get_node_by_id(db, node_id)
 
@@ -401,7 +401,8 @@ def restart_node(node_id, config=None):
         return connect_node(node_id, config)
 
     try:
-        logger.info(f"Restarting Xray core of \"{dbnode.name}\" node")
+        reason_note = f" (reason: {reason})" if reason else ""
+        logger.info(f"Restarting Xray core of \"{dbnode.name}\" node{reason_note}")
 
         if config is None:
             config = xray.config.include_db_users()
@@ -411,7 +412,7 @@ def restart_node(node_id, config=None):
         _change_node_status(node_id, NodeStatus.connected, version=version)
         _set_node_health(node_id, True)
         _clear_connection_backoff(node_id)
-        logger.info(f"Xray core of \"{dbnode.name}\" node restarted")
+        logger.info(f"Xray core of \"{dbnode.name}\" node restarted{reason_note}")
     except Exception as e:
         _change_node_status(node_id, NodeStatus.error, message=str(e))
         _set_node_health(node_id, False)

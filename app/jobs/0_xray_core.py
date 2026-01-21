@@ -35,7 +35,11 @@ def core_health_check():
                 xray.operations.mark_node_error(node_id, str(exc))
                 if not config:
                     config = xray.config.include_db_users()
-                xray.operations.restart_node(node_id, config)
+                xray.operations.restart_node(
+                    node_id,
+                    config,
+                    reason=f"Health check failed: {exc}",
+                )
         else:
             xray.operations.mark_node_error(node_id, error_message or "Node ping failed")
             if not config:

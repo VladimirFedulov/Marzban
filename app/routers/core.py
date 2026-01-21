@@ -93,7 +93,11 @@ def restart_core(admin: Admin = Depends(Admin.check_sudo_admin)):
 
     for node_id, node in list(xray.nodes.items()):
         if node.connected:
-            xray.operations.restart_node(node_id, startup_config)
+            xray.operations.restart_node(
+                node_id,
+                startup_config,
+                reason="Core restart requested via API",
+            )
 
     return {}
 
@@ -125,7 +129,11 @@ def modify_core_config(
     xray.core.restart(startup_config)
     for node_id, node in list(xray.nodes.items()):
         if node.connected:
-            xray.operations.restart_node(node_id, startup_config)
+            xray.operations.restart_node(
+                node_id,
+                startup_config,
+                reason="Core configuration updated",
+            )
 
     xray.hosts.update()
 

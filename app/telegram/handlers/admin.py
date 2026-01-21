@@ -1593,7 +1593,11 @@ def confirm_user_command(call: types.CallbackQuery):
         xray.core.restart(config)
         for node_id, node in list(xray.nodes.items()):
             if node.connected:
-                xray.operations.restart_node(node_id, config)
+                xray.operations.restart_node(
+                    node_id,
+                    config,
+                    reason="Restart requested via Telegram bot",
+                )
         bot.edit_message_text(
             '✅ XRay core restarted successfully.',
             m.chat.id, m.message_id,
