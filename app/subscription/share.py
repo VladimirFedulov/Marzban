@@ -418,6 +418,15 @@ def setup_format_variables(extra_data: dict) -> dict:
     return format_variables
 
 
+def format_subscription_profile_title(
+    user: "UserResponse",
+    template: str | None = None,
+) -> str:
+    raw_template = template or config_module.SUB_PROFILE_TITLE
+    format_variables = setup_format_variables(user.model_dump())
+    return raw_template.format_map(format_variables)
+
+
 def process_inbounds_and_tags(
         inbounds: dict,
         proxies: dict,

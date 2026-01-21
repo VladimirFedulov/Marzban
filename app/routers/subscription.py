@@ -16,6 +16,7 @@ from app.dependencies import get_validated_sub, validate_dates
 from app.models.user import SubscriptionUserResponse, UserResponse, get_next_reset_info
 from app.subscription.share import (
     encode_title,
+    format_subscription_profile_title,
     generate_fake_subscription,
     generate_subscription,
     get_hwid_limit_notes,
@@ -282,7 +283,7 @@ def user_subscription(
         "profile-web-page-url": str(request.url),
         "support-url": config_module.SUB_SUPPORT_URL,
         "profile-title": encode_title(
-            f"{config_module.SUB_PROFILE_TITLE} - {user.username}"
+            format_subscription_profile_title(user)
         ),
         "profile-update-interval": config_module.SUB_UPDATE_INTERVAL,
         "subscription-userinfo": "; ".join(
@@ -387,7 +388,7 @@ def user_subscription_with_client_type(
         "profile-web-page-url": str(request.url),
         "support-url": config_module.SUB_SUPPORT_URL,
         "profile-title": encode_title(
-            f"{config_module.SUB_PROFILE_TITLE} - {user.username}"
+            format_subscription_profile_title(user)
         ),
         "profile-update-interval": config_module.SUB_UPDATE_INTERVAL,
         "subscription-userinfo": "; ".join(
