@@ -3,7 +3,7 @@ import logging
 import time
 from os.path import dirname
 from threading import Thread
-from requests.exceptions import ConnectionError
+from requests.exceptions import RequestException
 from config import TELEGRAM_API_TOKEN, TELEGRAM_PROXY_URL
 from app import app
 from telebot import TeleBot, apihelper
@@ -34,7 +34,7 @@ def start_bot():
             while True:
                 try:
                     bot.infinity_polling()
-                except (ConnectionError, OSError) as exc:
+                except (RequestException, OSError) as exc:
                     logger.warning(
                         "Telegram bot polling failed due to network error; retrying in 30s.",
                         exc_info=exc,
