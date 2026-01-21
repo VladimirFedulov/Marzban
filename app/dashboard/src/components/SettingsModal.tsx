@@ -259,6 +259,24 @@ export const SettingsModal = () => {
     const handleRemove = (index: number) =>
       onChange(headers.filter((_, idx) => idx !== index));
 
+    const sortedHeaders = headers
+      .map((header, index) => ({ header, index }))
+      .sort((a, b) => {
+        const aValue = a.header.user_agent.trim().toLowerCase();
+        const bValue = b.header.user_agent.trim().toLowerCase();
+        if (!aValue && !bValue) {
+          return a.index - b.index;
+        }
+        if (!aValue) {
+          return 1;
+        }
+        if (!bValue) {
+          return -1;
+        }
+        const comparison = aValue.localeCompare(bValue);
+        return comparison !== 0 ? comparison : a.index - b.index;
+      });
+
     return (
       <Stack spacing={3}>
         <Stack spacing={2}>
@@ -282,7 +300,7 @@ export const SettingsModal = () => {
           </Text>
         ) : (
           <Stack spacing={2}>
-            {headers.map((header, index) => (
+            {sortedHeaders.map(({ header, index }) => (
               <HStack key={`${header.name}-${index}`} align="flex-start">
                 <Input
                   flex="1"
