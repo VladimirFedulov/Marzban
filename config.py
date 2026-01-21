@@ -34,6 +34,7 @@ DASHBOARD_PATH = config("DASHBOARD_PATH", default="/dashboard/")
 
 DEBUG = config("DEBUG", default=False, cast=bool)
 DOCS = config("DOCS", default=False, cast=bool)
+SKIP_NODE_DISCONNECT_ON_SHUTDOWN = config("SKIP_NODE_DISCONNECT_ON_SHUTDOWN", default=False, cast=bool)
 
 ALLOWED_ORIGINS = config("ALLOWED_ORIGINS", default="*").split(",")
 

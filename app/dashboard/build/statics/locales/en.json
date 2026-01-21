@@ -187,5 +187,8 @@
   "usersTable.noUser": "There is no user added to the system",
   "usersTable.noUserMatched": "It seems there is no user matched with what you are looking for",
   "usersTable.status": "status",
-  "usersTable.total": "Total"
+  "usersTable.total": "Total",
+  "settings.groups.core": "Core behavior",
+  "settings.skipNodeDisconnectOnShutdown": "Keep nodes connected on Marzban restart",
+  "settings.skipNodeDisconnectOnShutdownHelp": "When enabled, Marzban will not send disconnect commands to nodes during shutdown/restart."
 }

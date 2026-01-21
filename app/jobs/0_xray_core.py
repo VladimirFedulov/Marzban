@@ -87,6 +87,10 @@ def app_shutdown():
     logger.info("Stopping main Xray core")
     xray.core.stop()
 
+    if config_module.SKIP_NODE_DISCONNECT_ON_SHUTDOWN:
+        logger.info("Skipping node disconnect on shutdown")
+        return
+
     logger.info("Stopping nodes Xray core")
     for node in list(xray.nodes.values()):
         try:

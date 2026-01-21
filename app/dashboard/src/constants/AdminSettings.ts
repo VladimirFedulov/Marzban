@@ -416,6 +416,19 @@ export const settingsGroups: SettingsGroup[] = [
     ],
   },
   {
+    id: "core",
+    titleKey: "settings.groups.core",
+    settings: [
+      {
+        key: "SKIP_NODE_DISCONNECT_ON_SHUTDOWN",
+        labelKey: "settings.skipNodeDisconnectOnShutdown",
+        descriptionKey: "settings.skipNodeDisconnectOnShutdownHelp",
+        inputType: "boolean",
+        requiresRestart: true,
+      },
+    ],
+  },
+  {
     id: "notifications",
     titleKey: "settings.groups.notifications",
     settings: [
