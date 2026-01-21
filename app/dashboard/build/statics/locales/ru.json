@@ -187,5 +187,8 @@
   "usersTable.noUser": "В системе нет созданных пользователей",
   "usersTable.noUserMatched": "Похоже, нет пользователя, соответствующего вашему запросу",
   "usersTable.status": "Статус",
-  "usersTable.total": "Всего"
+  "usersTable.total": "Всего",
+  "settings.groups.core": "Поведение ядра",
+  "settings.skipNodeDisconnectOnShutdown": "Не отключать ноды при перезапуске Marzban",
+  "settings.skipNodeDisconnectOnShutdownHelp": "Если включено, Marzban не будет отправлять командам нод отключение при остановке/перезапуске."
 }

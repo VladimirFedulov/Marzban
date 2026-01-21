@@ -86,18 +86,22 @@ def get_core_stats(admin: Admin = Depends(Admin.get_current)):
 
 
 @router.post("/core/restart", responses={403: responses._403})
-def restart_core(admin: Admin = Depends(Admin.check_sudo_admin)):
-    """Restart the core and all connected nodes."""
+def restart_core(
+    restart_nodes: bool = True,
+    admin: Admin = Depends(Admin.check_sudo_admin),
+):
+    """Restart the core and optionally restart connected nodes."""
     startup_config = xray.config.include_db_users()
     xray.core.restart(startup_config)
 
-    for node_id, node in list(xray.nodes.items()):
-        if node.connected:
-            xray.operations.restart_node(
-                node_id,
-                startup_config,
-                reason="Core restart requested via API",
-            )
+    if restart_nodes:
+        for node_id, node in list(xray.nodes.items()):
+            if node.connected:
+                xray.operations.restart_node(
+                    node_id,
+                    startup_config,
+                    reason="Core restart requested via API",
+                )
 
     return {}
 

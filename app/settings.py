@@ -117,6 +117,7 @@ SETTINGS = [
         "JOB_RECORD_REALTIME_BANDWIDTH_MAX_INSTANCES", "int", requires_restart=True
     ),
     SettingDefinition("JOB_HWID_DEVICE_CLEANUP_INTERVAL", "int", requires_restart=True),
+    SettingDefinition("SKIP_NODE_DISCONNECT_ON_SHUTDOWN", "bool", requires_restart=True),
 ]
 
 SETTINGS_BY_KEY = {setting.key: setting for setting in SETTINGS}

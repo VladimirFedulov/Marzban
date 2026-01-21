@@ -189,4 +189,7 @@
   "usersTable.status": "状态",
   "usersTable.sortByExpire": "按过期时间排序",
   "usersTable.total": "总共",
+  "settings.groups.core": "核心行为",
+  "settings.skipNodeDisconnectOnShutdown": "重启 Marzban 时保持节点连接",
+  "settings.skipNodeDisconnectOnShutdownHelp": "启用后，Marzban 在停止/重启时不会向节点发送断开命令。"
 }
