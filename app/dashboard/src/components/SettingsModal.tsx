@@ -62,6 +62,26 @@ type SettingsPayload = {
 
 type DraftValue = string | boolean | CustomHeaderRule[];
 
+const sortCustomHeaders = (headers: CustomHeaderRule[]): CustomHeaderRule[] =>
+  [...headers]
+    .map((header, index) => ({ header, index }))
+    .sort((a, b) => {
+      const aValue = a.header.user_agent.trim().toLowerCase();
+      const bValue = b.header.user_agent.trim().toLowerCase();
+      if (!aValue && !bValue) {
+        return a.index - b.index;
+      }
+      if (!aValue) {
+        return 1;
+      }
+      if (!bValue) {
+        return -1;
+      }
+      const comparison = aValue.localeCompare(bValue);
+      return comparison !== 0 ? comparison : a.index - b.index;
+    })
+    .map(({ header }) => header);
+
 const formatSettingValue = (
   setting: SettingDefinition,
   value: unknown
@@ -77,13 +97,14 @@ const formatSettingValue = (
   }
   if (setting.key === "SUBSCRIPTION_CUSTOM_HEADERS") {
     if (!Array.isArray(value)) return [];
-    return value
+    const headers = value
       .filter((entry): entry is Record<string, unknown> => Boolean(entry))
       .map((entry) => ({
         name: entry.name ? String(entry.name) : "",
         value: entry.value ? String(entry.value) : "",
         user_agent: entry.user_agent ? String(entry.user_agent) : "",
       }));
+    return sortCustomHeaders(headers);
   }
   return value ? String(value) : "";
 };
@@ -198,13 +219,14 @@ export const SettingsModal = () => {
     headers: DraftValue
   ): CustomHeaderRule[] => {
     if (!Array.isArray(headers)) return [];
-    return headers
+    const sanitizedHeaders = headers
       .map((header) => ({
         name: header.name.trim(),
         value: header.value.trim(),
         user_agent: header.user_agent.trim(),
       }))
       .filter((header) => header.name && header.value);
+    return sortCustomHeaders(sanitizedHeaders);
   };
 
   const handleSave = () => {
@@ -259,24 +281,6 @@ export const SettingsModal = () => {
     const handleRemove = (index: number) =>
       onChange(headers.filter((_, idx) => idx !== index));
 
-    const sortedHeaders = headers
-      .map((header, index) => ({ header, index }))
-      .sort((a, b) => {
-        const aValue = a.header.user_agent.trim().toLowerCase();
-        const bValue = b.header.user_agent.trim().toLowerCase();
-        if (!aValue && !bValue) {
-          return a.index - b.index;
-        }
-        if (!aValue) {
-          return 1;
-        }
-        if (!bValue) {
-          return -1;
-        }
-        const comparison = aValue.localeCompare(bValue);
-        return comparison !== 0 ? comparison : a.index - b.index;
-      });
-
     return (
       <Stack spacing={3}>
         <Stack spacing={2}>
@@ -300,7 +304,7 @@ export const SettingsModal = () => {
           </Text>
         ) : (
           <Stack spacing={2}>
-            {sortedHeaders.map(({ header, index }) => (
+            {headers.map((header, index) => (
               <HStack key={`${header.name}-${index}`} align="flex-start">
                 <Input
                   flex="1"
