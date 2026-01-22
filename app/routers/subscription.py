@@ -5,6 +5,7 @@ from distutils.version import LooseVersion
 from time import time
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Path, Request, Response
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
 
 from sqlalchemy.exc import OperationalError
@@ -278,10 +279,9 @@ def user_subscription(
             retention_days=config_module.HWID_DEVICE_RETENTION_DAYS,
         )
         devices = crud.get_user_hwid_devices(db, dbuser)
-        hwid_devices = [
-            UserHwidDeviceResponse.model_validate(device).model_dump()
-            for device in devices
-        ]
+        hwid_devices = jsonable_encoder(
+            [UserHwidDeviceResponse.model_validate(device) for device in devices]
+        )
         return HTMLResponse(
             render_template(
                 config_module.SUBSCRIPTION_PAGE_TEMPLATE,
