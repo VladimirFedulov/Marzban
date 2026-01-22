@@ -483,11 +483,9 @@ def process_inbounds_and_tags(
                     salt = secrets.token_hex(8)
                     sni = random.choice(sni_list).replace("*", salt)
 
-                sid_value = None
+                sid_value = inbound.get("sid")
                 if sids := inbound.get("sids"):
                     sid_value = random.choice(sids)
-                else:
-                    sid_value = inbound.get("sid")
 
                 req_host = ""
                 req_host_list = host["host"] or inbound["host"]
@@ -522,9 +520,8 @@ def process_inbounds_and_tags(
                     "fragment_setting": host["fragment_setting"],
                     "noise_setting": host["noise_setting"],
                     "random_user_agent": host["random_user_agent"],
+                    "sid": sid_value or "",
                 }
-                if sid_value is not None:
-                    host_update["sid"] = sid_value
                 host_inbound.update(host_update)
 
                 entries.append(
