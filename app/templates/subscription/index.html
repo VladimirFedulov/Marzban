@@ -69,6 +69,46 @@
             margin-right: -15px;
         }
 
+        .hwid-section {
+            margin-top: 25px;
+        }
+
+        .hwid-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .hwid-table th,
+        .hwid-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .hwid-table th {
+            background-color: #f3f3f3;
+        }
+
+        .hwid-empty {
+            color: #666;
+            font-style: italic;
+        }
+
+        .delete-button {
+            background-color: #F44336;
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .delete-button[disabled] {
+            background-color: #f3a5a1;
+            cursor: not-allowed;
+        }
+
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -108,6 +148,12 @@
         remaining)
         {% endif %}</p>
 
+    <div class="hwid-section">
+        <h2>HWID Devices</h2>
+        <p>Connected devices: <span id="hwidDevicesCount">0</span></p>
+        <div id="hwidDevicesContainer"></div>
+    </div>
+
     {% if user.status == 'active' %}
     <h2>Links:</h2>
     <ul>
@@ -144,6 +190,9 @@
 
         const qrButtons = document.querySelectorAll('.qr-button');
         const qrPopup = document.getElementById('qrPopup');
+        const hwidDevices = {{ hwid_devices | tojson }};
+        const hwidDevicesCount = document.getElementById('hwidDevicesCount');
+        const hwidDevicesContainer = document.getElementById('hwidDevicesContainer');
 
         qrButtons.forEach((qrButton) => {
             qrButton.addEventListener('click', () => {
@@ -163,6 +212,112 @@
         function closeQrPopup() {
             document.getElementById('qrPopup').style.display = 'none';
         }
+
+        function formatHwidInfo(device) {
+            const parts = [];
+            if (device.device_os) {
+                parts.push(`OS: ${device.device_os}`);
+            }
+            if (device.device_model) {
+                parts.push(`Model: ${device.device_model}`);
+            }
+            if (device.device_os_version) {
+                parts.push(`Version: ${device.device_os_version}`);
+            }
+            if (device.user_agent) {
+                parts.push(`UA: ${device.user_agent}`);
+            }
+            return parts.length ? parts.join(' • ') : '—';
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return '—';
+            }
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+            return date.toLocaleString();
+        }
+
+        function renderHwidDevices(devices) {
+            hwidDevicesCount.textContent = devices.length;
+            hwidDevicesContainer.innerHTML = '';
+
+            if (!devices.length) {
+                const empty = document.createElement('div');
+                empty.className = 'hwid-empty';
+                empty.textContent = 'No devices recorded yet.';
+                hwidDevicesContainer.appendChild(empty);
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'hwid-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>HWID</th>
+                        <th>Device info</th>
+                        <th>Last seen</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            const tbody = table.querySelector('tbody');
+
+            devices.forEach((device) => {
+                const row = document.createElement('tr');
+                const deleteCell = document.createElement('td');
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', () => deleteHwidDevice(device.id, deleteButton));
+                deleteCell.appendChild(deleteButton);
+
+                row.innerHTML = `
+                    <td>${device.hwid}</td>
+                    <td>${formatHwidInfo(device)}</td>
+                    <td>${formatDate(device.last_seen_at)}</td>
+                `;
+                row.appendChild(deleteCell);
+                tbody.appendChild(row);
+            });
+
+            hwidDevicesContainer.appendChild(table);
+        }
+
+        function getHwidDevicesEndpoint() {
+            const path = window.location.pathname.replace(/\/$/, '');
+            return `${path}/hwid-devices`;
+        }
+
+        function deleteHwidDevice(deviceId, button) {
+            if (!confirm('Delete this device?')) {
+                return;
+            }
+            button.disabled = true;
+            fetch(`${getHwidDevicesEndpoint()}/${deviceId}`, { method: 'DELETE' })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to delete device');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    renderHwidDevices(data.devices || []);
+                })
+                .catch(() => {
+                    alert('Failed to delete device.');
+                })
+                .finally(() => {
+                    button.disabled = false;
+                });
+        }
+
+        renderHwidDevices(hwidDevices || []);
     </script>
 </body>
 
