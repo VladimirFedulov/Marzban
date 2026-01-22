@@ -125,8 +125,9 @@
     <p>
         Days to Next Reset:
         {% if days_to_next_reset is not none %}
-        {% set remainder_10 = days_to_next_reset % 10 %}
-        {% set remainder_100 = days_to_next_reset % 100 %}
+        {% set days_to_next_reset_int = days_to_next_reset | int %}
+        {% set remainder_10 = days_to_next_reset_int % 10 %}
+        {% set remainder_100 = days_to_next_reset_int % 100 %}
         {{ days_to_next_reset }}
         {% if remainder_10 == 1 and remainder_100 != 11 %}
         день
