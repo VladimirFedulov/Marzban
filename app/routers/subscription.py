@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from distutils.version import LooseVersion
 from time import time
 
-from fastapi import APIRouter, Depends, Header, Path, Request, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Path, Request, Response
 from fastapi.responses import HTMLResponse
 
 from sqlalchemy.exc import OperationalError
@@ -13,7 +13,13 @@ from app import logger
 from app.db import Session, crud, get_db
 from app.db.models import User
 from app.dependencies import get_validated_sub, validate_dates
-from app.models.user import SubscriptionUserResponse, UserResponse, get_next_reset_info
+from app.models.user import (
+    SubscriptionUserResponse,
+    UserHwidDeviceResponse,
+    UserHwidDevicesResponse,
+    UserResponse,
+    get_next_reset_info,
+)
 from app.subscription.share import (
     encode_title,
     format_subscription_profile_title,
@@ -266,6 +272,16 @@ def user_subscription(
     if "text/html" in accept_header:
         user: UserResponse = UserResponse.model_validate(dbuser)
         days_to_next_reset, next_reset_at = get_next_reset_info(dbuser)
+        crud.delete_expired_user_hwid_devices(
+            db=db,
+            dbuser=dbuser,
+            retention_days=config_module.HWID_DEVICE_RETENTION_DAYS,
+        )
+        devices = crud.get_user_hwid_devices(db, dbuser)
+        hwid_devices = [
+            UserHwidDeviceResponse.model_validate(device).model_dump()
+            for device in devices
+        ]
         return HTMLResponse(
             render_template(
                 config_module.SUBSCRIPTION_PAGE_TEMPLATE,
@@ -273,6 +289,7 @@ def user_subscription(
                     "user": user,
                     "days_to_next_reset": days_to_next_reset,
                     "next_reset_at": next_reset_at,
+                    "hwid_devices": hwid_devices,
                 },
             )
         )
@@ -351,6 +368,33 @@ def user_subscription_info(
     return response.model_copy(
         update={"days_to_next_reset": days_to_next_reset, "next_reset_at": next_reset_at}
     )
+
+
+@router.get("/{token}/hwid-devices", response_model=UserHwidDevicesResponse)
+def user_subscription_hwid_devices(
+    db: Session = Depends(get_db),
+    dbuser: UserResponse = Depends(get_validated_sub),
+):
+    crud.delete_expired_user_hwid_devices(
+        db=db,
+        dbuser=dbuser,
+        retention_days=config_module.HWID_DEVICE_RETENTION_DAYS,
+    )
+    devices = crud.get_user_hwid_devices(db, dbuser)
+    return {"devices": devices}
+
+
+@router.delete("/{token}/hwid-devices/{device_id}", response_model=UserHwidDevicesResponse)
+def delete_subscription_hwid_device(
+    device_id: int,
+    db: Session = Depends(get_db),
+    dbuser: UserResponse = Depends(get_validated_sub),
+):
+    deleted = crud.delete_user_hwid_device(db, dbuser, device_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Device not found")
+    devices = crud.get_user_hwid_devices(db, dbuser)
+    return {"devices": devices}
 
 
 @router.get("/{token}/usage")
