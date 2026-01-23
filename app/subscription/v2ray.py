@@ -1168,7 +1168,7 @@ class V2rayJsonConfig(str):
         outbounds = [outbound]
         dialer_proxy = ''
         extra_outbound = self.make_dialer_outbound(fragment, noise)
-        if extra_outbound and outbound_tag == "proxy":
+        if extra_outbound:
             dialer_proxy = extra_outbound['tag']
             outbounds.append(extra_outbound)
 
