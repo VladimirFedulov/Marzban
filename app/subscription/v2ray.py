@@ -1228,6 +1228,7 @@ class V2rayJsonConfig(str):
         merge_outbound = self._should_merge_outbound(inbound, outbound_tag)
         template_keys = [
             inbound.get("tag"),
+            outbound_tag,
             *(inbound.get("balancer_tags") or []),
         ]
         self.add_config(
