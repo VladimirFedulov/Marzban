@@ -46,6 +46,8 @@
   "hostsDialog.desc": "Use these variables to make it dynamic",
   "hostsDialog.expireDate": "Expiry date of the user",
   "hostsDialog.fingerprint": "Fingerprint",
+  "hostsDialog.outboundTag": "Original tag",
+  "hostsDialog.balancerTags": "Balancer tags",
   "hostsDialog.fragment": "Fragment pattern",
   "hostsDialog.fragment.info": "Correct pattern: length,interval,packets",
   "hostsDialog.fragment.info.attention": "Attention: currently, this feature only supported in streisand >= 1.6.12 and v2rayNG >= 1.8.16 (custom config)",

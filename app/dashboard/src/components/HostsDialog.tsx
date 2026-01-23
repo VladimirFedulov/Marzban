@@ -153,6 +153,8 @@ const hostsSchema = z.record(
       alpn: z.string(),
       fingerprint: z.string(),
       use_sni_as_host: z.boolean().default(false),
+      outbound_tag: z.string().nullable(),
+      balancer_tags: z.array(z.string()).nullable(),
     })
   )
 );
@@ -214,6 +216,8 @@ const AccordionInbound: FC<AccordionInboundType> = ({
       alpn: "",
       fingerprint: "",
       use_sni_as_host: false,
+      outbound_tag: "",
+      balancer_tags: [],
     });
   };
   const duplicateHost = (index: number) => {
@@ -937,6 +941,66 @@ const AccordionInbound: FC<AccordionInboundType> = ({
                                 );
                               })}
                             </Select>
+                          </FormControl>
+
+                          <FormControl>
+                            <FormLabel
+                              display="flex"
+                              pb={1}
+                              alignItems="center"
+                              gap={1}
+                              justifyContent="space-between"
+                              m="0"
+                            >
+                              <span>{t("hostsDialog.outboundTag")}</span>
+                            </FormLabel>
+                            <Input
+                              size="sm"
+                              borderRadius="4px"
+                              placeholder="original-outbound-tag"
+                              {...form.register(
+                                hostKey + "." + index + ".outbound_tag"
+                              )}
+                            />
+                          </FormControl>
+
+                          <FormControl>
+                            <FormLabel
+                              display="flex"
+                              pb={1}
+                              alignItems="center"
+                              gap={1}
+                              justifyContent="space-between"
+                              m="0"
+                            >
+                              <span>{t("hostsDialog.balancerTags")}</span>
+                            </FormLabel>
+                            <Controller
+                              control={form.control}
+                              name={`${hostKey}.${index}.balancer_tags`}
+                              render={({ field }) => {
+                                const value = Array.isArray(field.value)
+                                  ? field.value.join(", ")
+                                  : "";
+                                return (
+                                  <Input
+                                    size="sm"
+                                    borderRadius="4px"
+                                    placeholder="tag-a, tag-b"
+                                    value={value}
+                                    onChange={(event) => {
+                                      const nextValue = event.target.value
+                                        .split(",")
+                                        .map((item) => item.trim())
+                                        .filter(Boolean);
+                                      field.onChange(
+                                        nextValue.length > 0 ? nextValue : null
+                                      );
+                                    }}
+                                  />
+                                );
+                              }}
+                            />
                           </FormControl>
 
                           <FormControl
