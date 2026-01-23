@@ -60,3 +60,21 @@ you can use these docs to find out how to modify template files
 [Xray Docs](https://xtls.github.io/en/) \
 [Xray Examples](https://github.com/XTLS/Xray-examples) \
 [Xray Examples](https://github.com/chika0801/Xray-examples) Unofficial 
+
+## Observatory/Balancer example
+To build a single JSON config with multiple outbounds and balancers, set your
+subscription template to one that includes `burstObservatory` and `routing.balancers`
+entries (see `app/templates/v2ray/observatory_balancer.json`). When a host has both
+an `outbound_tag` and `balancer_tags` defined, Marzban will merge those outbounds into
+a single JSON config so you can reference them in `routing.balancers` and
+`routing.rules`. Hosts without these fields keep the default per-host JSON output.
+
+Example host payload (API/DB) fields:
+```json
+{
+  "remark": "Germany",
+  "address": "de.example.com",
+  "outbound_tag": "ENTRY-PROXY",
+  "balancer_tags": ["MAIN-BALANCER", "FALLBACK-BALANCER"]
+}
+```

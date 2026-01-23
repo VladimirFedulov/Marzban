@@ -1,0 +1,111 @@
+{
+  "log": {
+    "access": "",
+    "error": "",
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "tag": "socks",
+      "port": 10808,
+      "listen": "0.0.0.0",
+      "protocol": "socks",
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ],
+        "routeOnly": false
+      },
+      "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "allowTransparent": false
+      }
+    },
+    {
+      "tag": "http",
+      "port": 10809,
+      "listen": "0.0.0.0",
+      "protocol": "http",
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ],
+        "routeOnly": false
+      },
+      "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "allowTransparent": false
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "tag": "DIRECT"
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "BLOCK"
+    }
+  ],
+  "burstObservatory": {
+    "subjectSelector": [
+      "ENTRY-PROXY",
+      "RU-FALLBACK"
+    ],
+    "pingConfig": {
+      "destination": "https://www.google.com/generate_204",
+      "interval": "30s",
+      "sampling": 3,
+      "timeout": "3s",
+      "enableConcurrency": true
+    }
+  },
+  "dns": {
+    "servers": [
+      "1.1.1.1",
+      "8.8.8.8"
+    ]
+  },
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "balancers": [
+      {
+        "selector": [
+          "ENTRY-PROXY"
+        ],
+        "tag": "MAIN-BALANCER"
+      },
+      {
+        "fallbackTag": "RU-FALLBACK",
+        "selector": [
+          "ENTRY-PROXY"
+        ],
+        "tag": "FALLBACK-BALANCER"
+      }
+    ],
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": [
+          "socks",
+          "http"
+        ],
+        "balancerTag": "MAIN-BALANCER"
+      },
+      {
+        "type": "field",
+        "domain": [
+          "geosite:category-ru"
+        ],
+        "outboundTag": "RU-FALLBACK"
+      }
+    ]
+  }
+}

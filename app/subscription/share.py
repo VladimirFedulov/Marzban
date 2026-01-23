@@ -521,6 +521,8 @@ def process_inbounds_and_tags(
                     "noise_setting": host["noise_setting"],
                     "random_user_agent": host["random_user_agent"],
                     "sid": sid_value or "",
+                    "outbound_tag": host.get("outbound_tag"),
+                    "balancer_tags": host.get("balancer_tags"),
                 }
                 host_inbound.update(host_update)
 
