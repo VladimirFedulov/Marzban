@@ -68,6 +68,13 @@ entries (see `app/templates/v2ray/observatory_balancer.json`). When a host has b
 an `outbound_tag` and `balancer_tags` defined, Marzban will merge those outbounds into
 a single JSON config so you can reference them in `routing.balancers` and
 `routing.rules`. Hosts without these fields keep the default per-host JSON output.
+Make sure every `outbound_tag` you expect to use is included in the template's
+`routing.balancers[].selector` and (if you use observatory) the
+`burstObservatory.subjectSelector`. Otherwise the outbound will be merged into the
+single JSON config but never selected by the balancer or observatory.
+This merge behavior applies to the **v2ray-json** subscription output (single JSON
+config). If you're using the plain v2ray link format, you won't see merged
+balancers/observatory because that output doesn't build a combined JSON config.
 
 Example host payload (API/DB) fields:
 ```json
