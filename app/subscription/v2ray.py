@@ -522,6 +522,7 @@ class V2rayJsonConfig(str):
     def __init__(self):
         self.config = []
         self._config_template = None
+        self._merged_appended = False
         self.template = render_template(config_module.V2RAY_SUBSCRIPTION_TEMPLATE)
         self.templates = {}
         for keyword, template_path in config_module.V2RAY_SUBSCRIPTION_TEMPLATES.items():
@@ -573,8 +574,9 @@ class V2rayJsonConfig(str):
             )
 
         if merge:
-            if not self.config:
+            if not self._merged_appended:
                 self.config.append(json_template)
+                self._merged_appended = True
         else:
             self.config.append(json_template)
 
