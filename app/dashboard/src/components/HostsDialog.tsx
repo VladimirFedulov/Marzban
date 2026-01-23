@@ -991,7 +991,7 @@ const AccordionInbound: FC<AccordionInboundType> = ({
                                     onChange={(event) => {
                                       const nextValue = event.target.value
                                         .split(",")
-                                        .map((item) => item.trim())
+                                        .map((item: string) => item.trim())
                                         .filter(Boolean);
                                       field.onChange(
                                         nextValue.length > 0 ? nextValue : null
