@@ -557,13 +557,19 @@ class V2rayJsonConfig(str):
 
         del user_agent_data, grpc_user_agent_data
 
-    def add_config(self, remarks, outbounds, merge: bool = False):
+    def add_config(
+        self,
+        remarks,
+        outbounds,
+        merge: bool = False,
+        template_keys: list[str] | None = None,
+    ):
         if merge:
             if self._config_template is None:
-                self._config_template = self._load_template(remarks)
+                self._config_template = self._load_template(remarks, template_keys)
             json_template = self._config_template
         else:
-            json_template = self._load_template(remarks)
+            json_template = self._load_template(remarks, template_keys)
 
         if not merge or "remarks" not in json_template:
             json_template["remarks"] = remarks
@@ -585,10 +591,18 @@ class V2rayJsonConfig(str):
             self.config.reverse()
         return json.dumps(self.config, indent=4, cls=UUIDEncoder)
 
-    def _load_template(self, remarks: str) -> dict:
+    def _load_template(
+        self,
+        remarks: str,
+        template_keys: list[str] | None = None,
+    ) -> dict:
         json_template = None
+        search_texts = [remarks]
+        if template_keys:
+            search_texts.extend([key for key in template_keys if key])
+        search_text = " ".join(search_texts).upper()
         for keyword, template in self.templates.items():
-            if keyword in remarks.upper():
+            if keyword in search_text:
                 json_template = json.loads(template)
                 break
 
@@ -1212,8 +1226,14 @@ class V2rayJsonConfig(str):
             outbound["mux"]["enabled"] = True
 
         merge_outbound = self._should_merge_outbound(inbound, outbound_tag)
+        template_keys = [
+            inbound.get("tag"),
+            outbound_tag,
+            *(inbound.get("balancer_tags") or []),
+        ]
         self.add_config(
             remarks=remark,
             outbounds=outbounds,
             merge=merge_outbound,
+            template_keys=template_keys,
         )

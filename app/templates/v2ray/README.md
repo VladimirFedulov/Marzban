@@ -62,6 +62,13 @@ you can use these docs to find out how to modify template files
 [Xray Examples](https://github.com/chika0801/Xray-examples) Unofficial 
 
 ## Observatory/Balancer example
+Template selection for the V2Ray JSON subscription can be customized with
+`V2RAY_TEMPLATE_MAPPING`. The mapping keywords are matched against the combined
+text of each host's `remark`, the inbound `tag`, the `outbound_tag`, and any
+`balancer_tags` (case-insensitive). This lets you apply
+`observatory_balancer.json` only to specific tags while keeping other inbounds
+on `default.json`.
+
 To build a single JSON config with multiple outbounds and balancers, set your
 subscription template to one that includes `burstObservatory` and `routing.balancers`
 entries (see `app/templates/v2ray/observatory_balancer.json`). When a host has both
