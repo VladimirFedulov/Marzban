@@ -521,6 +521,7 @@ class V2rayJsonConfig(str):
 
     def __init__(self):
         self.config = []
+        self._config_template = None
         self.template = render_template(config_module.V2RAY_SUBSCRIPTION_TEMPLATE)
         self.templates = {}
         for keyword, template_path in config_module.V2RAY_SUBSCRIPTION_TEMPLATES.items():
@@ -555,7 +556,34 @@ class V2rayJsonConfig(str):
 
         del user_agent_data, grpc_user_agent_data
 
-    def add_config(self, remarks, outbounds):
+    def add_config(self, remarks, outbounds, merge: bool = False):
+        if merge:
+            if self._config_template is None:
+                self._config_template = self._load_template(remarks)
+            json_template = self._config_template
+        else:
+            json_template = self._load_template(remarks)
+
+        if not merge or "remarks" not in json_template:
+            json_template["remarks"] = remarks
+
+        if outbounds:
+            json_template["outbounds"] = self._merge_outbounds(
+                outbounds + json_template["outbounds"]
+            )
+
+        if merge:
+            if not self.config:
+                self.config.append(json_template)
+        else:
+            self.config.append(json_template)
+
+    def render(self, reverse=False):
+        if reverse:
+            self.config.reverse()
+        return json.dumps(self.config, indent=4, cls=UUIDEncoder)
+
+    def _load_template(self, remarks: str) -> dict:
         json_template = None
         for keyword, template in self.templates.items():
             if keyword in remarks.upper():
@@ -564,7 +592,6 @@ class V2rayJsonConfig(str):
 
         if json_template is None:
             json_template = json.loads(self.template)
-        json_template["remarks"] = remarks
 
         try:
             meta_configs = json.loads(self.meta_config)
@@ -574,16 +601,35 @@ class V2rayJsonConfig(str):
                     if meta_data:
                         json_template["meta"] = meta_data
                     break
-        except:
+        except json.JSONDecodeError:
             pass
 
-        json_template["outbounds"] = outbounds + json_template["outbounds"]
-        self.config.append(json_template)
+        return json_template
 
-    def render(self, reverse=False):
-        if reverse:
-            self.config.reverse()
-        return json.dumps(self.config, indent=4, cls=UUIDEncoder)
+    @staticmethod
+    def _make_outbound_tag(inbound: dict) -> str:
+        outbound_tag = inbound.get("outbound_tag")
+        if outbound_tag:
+            return outbound_tag
+        return "proxy"
+
+    @staticmethod
+    def _should_merge_outbound(inbound: dict, outbound_tag: str) -> bool:
+        balancer_tags = inbound.get("balancer_tags") or []
+        return bool(balancer_tags and outbound_tag != "proxy")
+
+    @staticmethod
+    def _merge_outbounds(outbounds: list[dict]) -> list[dict]:
+        merged = []
+        seen_tags = set()
+        for outbound in outbounds:
+            tag = outbound.get("tag")
+            if tag and tag in seen_tags:
+                continue
+            merged.append(outbound)
+            if tag:
+                seen_tags.add(tag)
+        return merged
 
     @staticmethod
     def tls_config(sni=None, fp=None, alpn=None, ais: bool = False) -> dict:
@@ -1086,8 +1132,9 @@ class V2rayJsonConfig(str):
             else:
                 path = get_grpc_gun(path)
 
+        outbound_tag = self._make_outbound_tag(inbound)
         outbound = {
-            "tag": "proxy",
+            "tag": outbound_tag,
             "protocol": protocol
         }
 
@@ -1162,4 +1209,9 @@ class V2rayJsonConfig(str):
             outbound["mux"] = mux_config
             outbound["mux"]["enabled"] = True
 
-        self.add_config(remarks=remark, outbounds=outbounds)
+        merge_outbound = self._should_merge_outbound(inbound, outbound_tag)
+        self.add_config(
+            remarks=remark,
+            outbounds=outbounds,
+            merge=merge_outbound,
+        )
