@@ -46,6 +46,8 @@
   "hostsDialog.desc": "Используйте эти переменные, чтобы сделать его динамическим",
   "hostsDialog.expireDate": "Дата истечения срока пользователя",
   "hostsDialog.fingerprint": "Fingerprint",
+  "hostsDialog.outboundTag": "Оригинальный тег",
+  "hostsDialog.balancerTags": "Теги балансера",
   "hostsDialog.fragment": "Шаблон фрагмента",
   "hostsDialog.fragment.info": "length,interval,packet (e.g. 10-100,100-200,tlshello)",
   "hostsDialog.fragment.info.attention": "Attention: currently, this feature only supported in streisand >= 1.6.12 and v2rayNG >= 1.8.16 (custom config)",

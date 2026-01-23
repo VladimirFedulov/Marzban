@@ -10,6 +10,8 @@ type HostsSchema = Record<
     path: string | null;
     sni: string | null;
     host: string | null;
+    outbound_tag?: string | null;
+    balancer_tags?: string[] | null;
   }[]
 >;
 
