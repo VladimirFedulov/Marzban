@@ -48,6 +48,7 @@
   "hostsDialog.fingerprint": "Fingerprint",
   "hostsDialog.outboundTag": "Original tag",
   "hostsDialog.balancerTags": "Balancer tags",
+  "hostsDialog.balancerTagsWarning": "This host will appear only in the JSON subscription when both tags are set.",
   "hostsDialog.fragment": "Fragment pattern",
   "hostsDialog.fragment.info": "Correct pattern: length,interval,packets",
   "hostsDialog.fragment.info.attention": "Attention: currently, this feature only supported in streisand >= 1.6.12 and v2rayNG >= 1.8.16 (custom config)",

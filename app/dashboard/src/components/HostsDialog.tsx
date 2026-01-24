@@ -265,6 +265,13 @@ const AccordionInbound: FC<AccordionInboundType> = ({
       <AccordionPanel px={2} pb={2}>
         <VStack gap={3}>
           {hosts.map((host, index) => {
+            const hostValues = form.watch(`${hostKey}.${index}`);
+            const outboundTagValue = hostValues?.outbound_tag?.trim();
+            const balancerTagsValue = Array.isArray(hostValues?.balancer_tags)
+              ? hostValues.balancer_tags
+              : [];
+            const showBalancerTagsWarning =
+              !!outboundTagValue && balancerTagsValue.length > 0;
             return (
               <motion.div
                 key={host.id}
@@ -1002,6 +1009,16 @@ const AccordionInbound: FC<AccordionInboundType> = ({
                               }}
                             />
                           </FormControl>
+                          {showBalancerTagsWarning ? (
+                            <Text
+                              fontSize="xs"
+                              color="orange.400"
+                              textAlign="left"
+                              w="full"
+                            >
+                              {t("hostsDialog.balancerTagsWarning")}
+                            </Text>
+                          ) : null}
 
                           <FormControl
                             isInvalid={

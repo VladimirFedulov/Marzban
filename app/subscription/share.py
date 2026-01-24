@@ -125,6 +125,12 @@ def _build_fake_settings(protocol: str) -> dict:
     }
 
 
+def _is_json_only_host(inbound: dict) -> bool:
+    outbound_tag = inbound.get("outbound_tag")
+    balancer_tags = inbound.get("balancer_tags") or []
+    return bool(outbound_tag and balancer_tags)
+
+
 def generate_fake_subscription(
     user: "UserResponse",
     config_format: Literal["v2ray", "clash-meta", "clash", "sing-box", "outline", "v2ray-json"],
@@ -554,6 +560,8 @@ def process_inbounds_and_tags(
             entries = [entry for idx, entry in enumerate(entries) if idx in target_index_set]
 
     for entry in entries:
+        if not isinstance(conf, V2rayJsonConfig) and _is_json_only_host(entry["inbound"]):
+            continue
         conf.add(
             remark=entry["remark"],
             address=entry["address"],
