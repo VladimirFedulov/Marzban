@@ -12,6 +12,7 @@ type HostsSchema = Record<
     host: string | null;
     outbound_tag?: string | null;
     balancer_tags?: string[] | null;
+    merge_primary?: boolean | null;
   }[]
 >;
 

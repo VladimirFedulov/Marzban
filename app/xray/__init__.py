@@ -65,6 +65,7 @@ def hosts(storage: dict):
                     "use_sni_as_host": host.use_sni_as_host,
                     "outbound_tag": host.outbound_tag,
                     "balancer_tags": host.balancer_tags,
+                    "merge_primary": host.merge_primary,
                 } for host in inbound_hosts if not host.is_disabled
             ]
 

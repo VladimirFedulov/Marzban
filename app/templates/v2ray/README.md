@@ -89,6 +89,12 @@ Example host payload (API/DB) fields:
   "remark": "Germany",
   "address": "de.example.com",
   "outbound_tag": "ENTRY-PROXY",
-  "balancer_tags": ["MAIN-BALANCER", "FALLBACK-BALANCER"]
+  "balancer_tags": ["MAIN-BALANCER", "FALLBACK-BALANCER"],
+  "merge_primary": true
 }
 ```
+
+When multiple hosts share the same `outbound_tag` and `balancer_tags`, the
+`merge_primary` flag lets you pick the preferred host that should win during the
+merge. Mark the primary host with `merge_primary: true` to ensure its outbound
+definition overrides other merged hosts.
