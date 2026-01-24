@@ -566,6 +566,7 @@ def process_inbounds_and_tags(
                     "sid": sid_value or "",
                     "outbound_tag": host.get("outbound_tag"),
                     "balancer_tags": host.get("balancer_tags"),
+                    "merge_primary": host.get("merge_primary"),
                 }
                 host_inbound.update(host_update)
 
