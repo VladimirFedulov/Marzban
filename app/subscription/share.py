@@ -488,6 +488,15 @@ def process_inbounds_and_tags(
                         if config_module.SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS
                         else custom_hosts + default_hosts
                     )
+                if isinstance(conf, V2rayJsonConfig):
+                    def merge_priority(host: dict) -> bool:
+                        return bool(
+                            host.get("merge_primary")
+                            and host.get("outbound_tag")
+                            and host.get("balancer_tags")
+                        )
+
+                    hosts = sorted(hosts, key=lambda host: not merge_priority(host))
 
             for host in hosts:
                 if not isinstance(conf, V2rayJsonConfig) and _is_json_only_host(host):

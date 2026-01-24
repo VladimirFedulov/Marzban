@@ -157,6 +157,7 @@ class ProxyHost(BaseModel):
     use_sni_as_host: Union[bool, None] = None
     outbound_tag: Optional[str] = Field(None, nullable=True)
     balancer_tags: Optional[list[str]] = Field(None, nullable=True)
+    merge_primary: Union[bool, None] = None
     model_config = ConfigDict(from_attributes=True)
 
     @field_validator("remark", mode="after")
