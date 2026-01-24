@@ -637,14 +637,19 @@ class V2rayJsonConfig(str):
     @staticmethod
     def _merge_outbounds(outbounds: list[dict]) -> list[dict]:
         merged = []
-        seen_tags = set()
+        seen_tags = {}
         for outbound in outbounds:
             tag = outbound.get("tag")
+            merge_priority = bool(outbound.pop("_merge_priority", False))
             if tag and tag in seen_tags:
+                existing_index, existing_priority = seen_tags[tag]
+                if merge_priority and not existing_priority:
+                    merged[existing_index] = outbound
+                    seen_tags[tag] = (existing_index, merge_priority)
                 continue
             merged.append(outbound)
             if tag:
-                seen_tags.add(tag)
+                seen_tags[tag] = (len(merged) - 1, merge_priority)
         return merged
 
     @staticmethod
@@ -1149,9 +1154,14 @@ class V2rayJsonConfig(str):
                 path = get_grpc_gun(path)
 
         outbound_tag = self._make_outbound_tag(inbound)
+        merge_priority = bool(
+            inbound.get("merge_primary")
+            and self._should_merge_outbound(inbound, outbound_tag)
+        )
         outbound = {
             "tag": outbound_tag,
-            "protocol": protocol
+            "protocol": protocol,
+            "_merge_priority": merge_priority,
         }
 
         if inbound['protocol'] == 'vmess':
