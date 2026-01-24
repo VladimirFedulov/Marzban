@@ -125,10 +125,18 @@ def _build_fake_settings(protocol: str) -> dict:
     }
 
 
+def _has_balancer_tags(balancer_tags: object) -> bool:
+    if isinstance(balancer_tags, str):
+        return bool(balancer_tags.strip())
+    if isinstance(balancer_tags, list):
+        return any(str(tag).strip() for tag in balancer_tags)
+    return False
+
+
 def _is_json_only_host(inbound: dict) -> bool:
     outbound_tag = inbound.get("outbound_tag")
-    balancer_tags = inbound.get("balancer_tags") or []
-    return bool(outbound_tag and balancer_tags)
+    balancer_tags = inbound.get("balancer_tags")
+    return bool(outbound_tag and _has_balancer_tags(balancer_tags))
 
 
 def generate_fake_subscription(
@@ -482,6 +490,8 @@ def process_inbounds_and_tags(
                     )
 
             for host in hosts:
+                if not isinstance(conf, V2rayJsonConfig) and _is_json_only_host(host):
+                    continue
                 host_inbound = inbound.copy()
                 sni = ""
                 sni_list = host["sni"] or inbound["sni"]
