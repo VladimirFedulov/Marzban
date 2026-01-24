@@ -20,9 +20,9 @@ type HostsSchema = Record<
     alpn: string;
     fingerprint: string;
     use_sni_as_host: boolean;
-    outbound_tag?: string | null;
-    balancer_tags?: string[] | null;
-    merge_primary?: boolean | null;
+    outbound_tag: string | null;
+    balancer_tags: string[] | null;
+    merge_primary: boolean;
   }[]
 >;
 
