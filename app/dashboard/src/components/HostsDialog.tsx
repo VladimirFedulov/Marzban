@@ -65,6 +65,7 @@ import { Trans, useTranslation } from "react-i18next";
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
 import { z } from "zod";
+import { hostsSchema, type HostsFormValues } from "schemas/hosts";
 import { useDashboard } from "../contexts/DashboardContext";
 import { DeleteIcon } from "./DeleteUserModal";
 import { Icon } from "./Icon";
@@ -125,42 +126,6 @@ const InfoIcon = chakra(InformationCircleIcon, {
   },
 });
 
-const hostsSchema = z.record(
-  z.string().min(1),
-  z.array(
-    z.object({
-      remark: z.string().min(1, "Remark is required"),
-      address: z.string().min(1, "Address is required"),
-      port: z
-        .string()
-        .or(z.number())
-        .nullable()
-        .transform((value) => {
-          if (typeof value === "number") return value;
-          if (value !== null && !isNaN(parseInt(value)))
-            return Number(parseInt(value));
-          return null;
-        }),
-      path: z.string().nullable(),
-      sni: z.string().nullable(),
-      host: z.string().nullable(),
-      mux_enable: z.boolean().default(false),
-      allowinsecure: z.boolean().nullable().default(false),
-      is_disabled: z.boolean().default(true),
-      fragment_setting: z.string().nullable(),
-      noise_setting: z.string().nullable(),
-      random_user_agent: z.boolean().default(false),
-      security: z.string(),
-      alpn: z.string(),
-      fingerprint: z.string(),
-      use_sni_as_host: z.boolean().default(false),
-      outbound_tag: z.string().nullable(),
-      balancer_tags: z.array(z.string()).nullable(),
-      merge_primary: z.boolean().default(false),
-    })
-  )
-);
-
 const Error = chakra(FormErrorMessage, {
   baseStyle: {
     color: "red.400",
@@ -186,7 +151,7 @@ const AccordionInbound: FC<AccordionInboundType> = ({
     .flat()
     .filter((inbound) => inbound.tag === hostKey)[0];
 
-  const form = useFormContext<z.infer<typeof hostsSchema>>();
+  const form = useFormContext<HostsFormValues>();
   const {
     fields: hosts,
     append: addHost,
@@ -1307,7 +1272,7 @@ export const HostsDialog: FC = () => {
   useEffect(() => {
     if (isEditingHosts) fetchHosts();
   }, [isEditingHosts]);
-  const form = useForm<z.infer<typeof hostsSchema>>({
+  const form = useForm<HostsFormValues>({
     resolver: zodResolver(hostsSchema),
   });
 
@@ -1321,8 +1286,8 @@ export const HostsDialog: FC = () => {
     setOpenAccordions({});
     onEditingHosts(false);
   };
-  const handleFormSubmit = (hosts: z.infer<typeof hostsSchema>) => {
-    setHosts(hosts)
+  const handleFormSubmit = (hosts: HostsFormValues) => {
+    setHosts(hostsSchema.parse(hosts))
       .then(() => {
         toast({
           title: t("hostsDialog.savedSuccess"),

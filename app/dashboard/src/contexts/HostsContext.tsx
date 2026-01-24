@@ -1,20 +1,6 @@
 import { fetch } from "service/http";
 import { create } from "zustand";
-
-type HostsSchema = Record<
-  string,
-  {
-    remark: string;
-    address: string;
-    port: number | null;
-    path: string | null;
-    sni: string | null;
-    host: string | null;
-    outbound_tag?: string | null;
-    balancer_tags?: string[] | null;
-    merge_primary?: boolean | null;
-  }[]
->;
+import type { HostsSchema } from "schemas/hosts";
 
 type HostsStore = {
   isLoading: boolean;
