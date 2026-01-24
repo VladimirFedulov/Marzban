@@ -550,6 +550,18 @@ def process_inbounds_and_tags(
                 if host.get("use_sni_as_host", False) and sni:
                     req_host = sni
 
+                outbound_tag = host.get("outbound_tag")
+                if outbound_tag is None:
+                    outbound_tag = inbound.get("outbound_tag")
+
+                balancer_tags = host.get("balancer_tags")
+                if balancer_tags is None:
+                    balancer_tags = inbound.get("balancer_tags")
+
+                merge_primary = host.get("merge_primary")
+                if merge_primary is None:
+                    merge_primary = inbound.get("merge_primary")
+
                 host_update = {
                     "port": host["port"] or inbound["port"],
                     "sni": sni,
@@ -564,8 +576,9 @@ def process_inbounds_and_tags(
                     "noise_setting": host["noise_setting"],
                     "random_user_agent": host["random_user_agent"],
                     "sid": sid_value or "",
-                    "outbound_tag": host.get("outbound_tag"),
-                    "balancer_tags": host.get("balancer_tags"),
+                    "outbound_tag": outbound_tag,
+                    "balancer_tags": balancer_tags,
+                    "merge_primary": merge_primary,
                 }
                 host_inbound.update(host_update)
 
