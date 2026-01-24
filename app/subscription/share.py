@@ -489,14 +489,32 @@ def process_inbounds_and_tags(
                         else custom_hosts + default_hosts
                     )
                 if isinstance(conf, V2rayJsonConfig):
-                    def merge_priority(host: dict) -> bool:
-                        return bool(
-                            host.get("merge_primary")
-                            and host.get("outbound_tag")
-                            and host.get("balancer_tags")
-                        )
+                    def has_balancer_tags(host: dict) -> bool:
+                        return bool(host.get("balancer_tags"))
 
-                    hosts = sorted(hosts, key=merge_priority)
+                    def merge_priority(host: dict) -> bool:
+                        return bool(host.get("merge_primary") and has_balancer_tags(host))
+
+                    grouped_hosts: dict[tuple, list[dict]] = {}
+                    group_order: list[tuple] = []
+                    for host in hosts:
+                        group_key = tuple(host.get("balancer_tags") or ())
+                        if group_key not in grouped_hosts:
+                            grouped_hosts[group_key] = []
+                            group_order.append(group_key)
+                        grouped_hosts[group_key].append(host)
+
+                    ordered_hosts: list[dict] = []
+                    for group_key in group_order:
+                        group_hosts = grouped_hosts[group_key]
+                        if group_key and any(merge_priority(host) for host in group_hosts):
+                            group_hosts = sorted(
+                                group_hosts,
+                                key=lambda host: not merge_priority(host),
+                            )
+                        ordered_hosts.extend(group_hosts)
+
+                    hosts = ordered_hosts
 
             for host in hosts:
                 if not isinstance(conf, V2rayJsonConfig) and _is_json_only_host(host):
