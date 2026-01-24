@@ -249,9 +249,10 @@ def _change_node_status(node_id: int, status: NodeStatus, message: str = None, v
             db.rollback()
 
 
-def mark_node_error(node_id: int, message: str):
-    _set_node_health(node_id, False)
+def mark_node_error(node_id: int, message: str) -> int:
+    failure_count = _set_node_health(node_id, False)
     _change_node_status(node_id, NodeStatus.error, message=message)
+    return failure_count
 
 
 global _connecting_nodes
@@ -264,15 +265,19 @@ _node_health_ttl = 30.0
 _force_reconnect_after = 300.0
 
 
-def _set_node_health(node_id: int, ok: bool):
+def _set_node_health(node_id: int, ok: bool) -> int:
     with _node_health_lock:
         now = time.monotonic()
         entry = _node_health.get(node_id, {})
         if ok:
             entry["last_ok_at"] = now
+            entry["consecutive_failures"] = 0
+        else:
+            entry["consecutive_failures"] = entry.get("consecutive_failures", 0) + 1
         entry["ok"] = ok
         entry["checked_at"] = now
         _node_health[node_id] = entry
+        return entry["consecutive_failures"]
 
 
 def get_healthy_nodes() -> List[Tuple[int, XRayNode]]:
