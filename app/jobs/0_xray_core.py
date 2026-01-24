@@ -32,7 +32,9 @@ def core_health_check():
                 node.api.get_sys_stats(timeout=2)
                 xray.operations.mark_node_connected(node_id)
             except (ConnectionError, xray_exc.XrayError, AssertionError) as exc:
-                xray.operations.mark_node_error(node_id, str(exc))
+                failure_count = xray.operations.mark_node_error(node_id, str(exc))
+                if failure_count < 2:
+                    continue
                 if not config:
                     config = xray.config.include_db_users()
                 xray.operations.restart_node(
