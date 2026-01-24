@@ -12,7 +12,6 @@ import {
   Container,
   FormControl,
   FormErrorMessage,
-  FormHelperText,
   FormLabel,
   HStack,
   IconButton,
@@ -156,7 +155,6 @@ const hostsSchema = z.record(
       use_sni_as_host: z.boolean().default(false),
       outbound_tag: z.string().nullable(),
       balancer_tags: z.array(z.string()).nullable(),
-      merge_primary: z.boolean().default(false),
     })
   )
 );
@@ -220,7 +218,6 @@ const AccordionInbound: FC<AccordionInboundType> = ({
       use_sni_as_host: false,
       outbound_tag: "",
       balancer_tags: [],
-      merge_primary: false,
     });
   };
   const duplicateHost = (index: number) => {
@@ -1022,20 +1019,6 @@ const AccordionInbound: FC<AccordionInboundType> = ({
                               {t("hostsDialog.balancerTagsWarning")}
                             </Text>
                           ) : null}
-                          <FormControl>
-                            <Checkbox
-                              {...form.register(
-                                hostKey + "." + index + ".merge_primary"
-                              )}
-                            >
-                              <FormLabel>
-                                {t("hostsDialog.mergePrimary")}
-                              </FormLabel>
-                            </Checkbox>
-                            <FormHelperText fontSize="xs" color="gray.500">
-                              {t("hostsDialog.mergePrimaryInfo")}
-                            </FormHelperText>
-                          </FormControl>
 
                           <FormControl
                             isInvalid={

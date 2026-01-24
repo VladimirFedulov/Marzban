@@ -488,33 +488,6 @@ def process_inbounds_and_tags(
                         if config_module.SUBSCRIPTION_HIDE_DEFAULT_HOSTS_WHEN_CUSTOM_HOSTS
                         else custom_hosts + default_hosts
                     )
-                if isinstance(conf, V2rayJsonConfig):
-                    def has_balancer_tags(host: dict) -> bool:
-                        return bool(host.get("balancer_tags"))
-
-                    def merge_priority(host: dict) -> bool:
-                        return bool(host.get("merge_primary") and has_balancer_tags(host))
-
-                    grouped_hosts: dict[tuple, list[dict]] = {}
-                    group_order: list[tuple] = []
-                    for host in hosts:
-                        group_key = tuple(host.get("balancer_tags") or ())
-                        if group_key not in grouped_hosts:
-                            grouped_hosts[group_key] = []
-                            group_order.append(group_key)
-                        grouped_hosts[group_key].append(host)
-
-                    ordered_hosts: list[dict] = []
-                    for group_key in group_order:
-                        group_hosts = grouped_hosts[group_key]
-                        if group_key and any(merge_priority(host) for host in group_hosts):
-                            group_hosts = sorted(
-                                group_hosts,
-                                key=lambda host: not merge_priority(host),
-                            )
-                        ordered_hosts.extend(group_hosts)
-
-                    hosts = ordered_hosts
 
             for host in hosts:
                 if not isinstance(conf, V2rayJsonConfig) and _is_json_only_host(host):
@@ -550,18 +523,6 @@ def process_inbounds_and_tags(
                 if host.get("use_sni_as_host", False) and sni:
                     req_host = sni
 
-                outbound_tag = host.get("outbound_tag")
-                if outbound_tag is None:
-                    outbound_tag = inbound.get("outbound_tag")
-
-                balancer_tags = host.get("balancer_tags")
-                if balancer_tags is None:
-                    balancer_tags = inbound.get("balancer_tags")
-
-                merge_primary = host.get("merge_primary")
-                if merge_primary is None:
-                    merge_primary = inbound.get("merge_primary")
-
                 host_update = {
                     "port": host["port"] or inbound["port"],
                     "sni": sni,
@@ -576,9 +537,8 @@ def process_inbounds_and_tags(
                     "noise_setting": host["noise_setting"],
                     "random_user_agent": host["random_user_agent"],
                     "sid": sid_value or "",
-                    "outbound_tag": outbound_tag,
-                    "balancer_tags": balancer_tags,
-                    "merge_primary": merge_primary,
+                    "outbound_tag": host.get("outbound_tag"),
+                    "balancer_tags": host.get("balancer_tags"),
                 }
                 host_inbound.update(host_update)
 
