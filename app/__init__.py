@@ -10,7 +10,7 @@ from fastapi.routing import APIRoute
 
 import config as config_module
 
-__version__ = "0.8.9.9"
+__version__ = "0.8.9.10"
 
 app = FastAPI(
     title="MarzbanAPI",
