@@ -49,6 +49,7 @@
   "hostsDialog.fingerprint": "指纹",
   "hostsDialog.outboundTag": "原始标签",
   "hostsDialog.balancerTags": "负载均衡标签",
+  "hostsDialog.balancerTagsWarning": "当两个字段都填写时，此主机仅会出现在 JSON 订阅中。",
   "hostsDialog.fragment": "碎片图案",
   "hostsDialog.fragment.info": "length,interval,packet (e.g. 10-100,100-200,tlshello)",
   "hostsDialog.fragment.info.attention": "请注意： 当前特性仅支持 streisand >= 1.6.12 and v2rayNG >= 1.8.16 (自定义配置)",
