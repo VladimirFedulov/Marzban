@@ -496,7 +496,7 @@ def process_inbounds_and_tags(
                             and host.get("balancer_tags")
                         )
 
-                    hosts = sorted(hosts, key=lambda host: not merge_priority(host))
+                    hosts = sorted(hosts, key=merge_priority)
 
             for host in hosts:
                 if not isinstance(conf, V2rayJsonConfig) and _is_json_only_host(host):
