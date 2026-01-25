@@ -521,8 +521,8 @@ class V2rayJsonConfig(str):
 
     def __init__(self):
         self.config = []
-        self._config_template = None
-        self._merged_appended = False
+        self._config_templates = {}
+        self._merged_appended = set()
         self.template = render_template(config_module.V2RAY_SUBSCRIPTION_TEMPLATE)
         self.templates = {}
         for keyword, template_path in config_module.V2RAY_SUBSCRIPTION_TEMPLATES.items():
@@ -563,11 +563,13 @@ class V2rayJsonConfig(str):
         outbounds,
         merge: bool = False,
         template_keys: list[str] | None = None,
+        merge_key: str | None = None,
     ):
         if merge:
-            if self._config_template is None:
-                self._config_template = self._load_template(remarks, template_keys)
-            json_template = self._config_template
+            key = merge_key or "__default__"
+            if key not in self._config_templates:
+                self._config_templates[key] = self._load_template(remarks, template_keys)
+            json_template = self._config_templates[key]
         else:
             json_template = self._load_template(remarks, template_keys)
 
@@ -580,9 +582,9 @@ class V2rayJsonConfig(str):
             )
 
         if merge:
-            if not self._merged_appended:
+            if key not in self._merged_appended:
                 self.config.append(json_template)
-                self._merged_appended = True
+                self._merged_appended.add(key)
         else:
             self.config.append(json_template)
 
@@ -1226,14 +1228,26 @@ class V2rayJsonConfig(str):
             outbound["mux"]["enabled"] = True
 
         merge_outbound = self._should_merge_outbound(inbound, outbound_tag)
-        template_keys = [
+        balancer_tags = sorted(set(inbound.get("balancer_tags") or []))
+        base_template_keys = [
             inbound.get("tag"),
             outbound_tag,
-            *(inbound.get("balancer_tags") or []),
+            *balancer_tags,
         ]
-        self.add_config(
-            remarks=remark,
-            outbounds=outbounds,
-            merge=merge_outbound,
-            template_keys=template_keys,
-        )
+        if merge_outbound and balancer_tags:
+            for balancer_tag in balancer_tags:
+                template_keys = [*base_template_keys, balancer_tag]
+                self.add_config(
+                    remarks=remark,
+                    outbounds=outbounds,
+                    merge=True,
+                    template_keys=template_keys,
+                    merge_key=balancer_tag,
+                )
+        else:
+            self.add_config(
+                remarks=remark,
+                outbounds=outbounds,
+                merge=merge_outbound,
+                template_keys=base_template_keys,
+            )
