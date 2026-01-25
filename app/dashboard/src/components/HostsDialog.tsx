@@ -55,7 +55,7 @@ import {
 } from "constants/Proxies";
 import { useHosts } from "contexts/HostsContext";
 import { motion } from "framer-motion";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import {
   Controller,
   FormProvider,
@@ -180,6 +180,60 @@ const Error = chakra(FormErrorMessage, {
     w: "100%",
   },
 });
+
+const normalizeBalancerTags = (value: string) =>
+  value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+type BalancerTagsInputProps = {
+  value: string[] | null | undefined;
+  onChange: (value: string[] | null) => void;
+  placeholder?: string;
+};
+
+const BalancerTagsInput: FC<BalancerTagsInputProps> = ({
+  value,
+  onChange,
+  placeholder,
+}) => {
+  const [draft, setDraft] = useState(
+    Array.isArray(value) ? value.join(", ") : ""
+  );
+  const lastCommittedRef = useRef(Array.isArray(value) ? value.join(", ") : "");
+
+  useEffect(() => {
+    const next = Array.isArray(value) ? value.join(", ") : "";
+    if (next !== lastCommittedRef.current && next !== draft) {
+      setDraft(next);
+    }
+  }, [draft, value]);
+
+  return (
+    <Input
+      size="sm"
+      borderRadius="4px"
+      placeholder={placeholder}
+      value={draft}
+      onChange={(event) => {
+        const nextDraft = event.target.value;
+        setDraft(nextDraft);
+        const nextValue = normalizeBalancerTags(nextDraft);
+        const normalized = nextValue.length > 0 ? nextValue : null;
+        lastCommittedRef.current = normalized ? normalized.join(", ") : "";
+        onChange(normalized);
+      }}
+      onBlur={() => {
+        const normalized = normalizeBalancerTags(draft);
+        const nextDraft = normalized.join(", ");
+        lastCommittedRef.current = nextDraft;
+        setDraft(nextDraft);
+        onChange(normalized.length > 0 ? normalized : null);
+      }}
+    />
+  );
+};
 
 type AccordionInboundType = {
   hostKey: string;
@@ -1003,24 +1057,11 @@ const AccordionInbound: FC<AccordionInboundType> = ({
                               control={form.control}
                               name={`${hostKey}.${index}.balancer_tags`}
                               render={({ field }) => {
-                                const value = Array.isArray(field.value)
-                                  ? field.value.join(", ")
-                                  : "";
                                 return (
-                                  <Input
-                                    size="sm"
-                                    borderRadius="4px"
+                                  <BalancerTagsInput
+                                    value={field.value}
+                                    onChange={field.onChange}
                                     placeholder="tag-a, tag-b"
-                                    value={value}
-                                    onChange={(event) => {
-                                      const nextValue = event.target.value
-                                        .split(",")
-                                        .map((item: string) => item.trim())
-                                        .filter(Boolean);
-                                      field.onChange(
-                                        nextValue.length > 0 ? nextValue : null
-                                      );
-                                    }}
                                   />
                                 );
                               }}
