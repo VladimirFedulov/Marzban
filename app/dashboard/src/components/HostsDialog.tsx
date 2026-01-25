@@ -1436,7 +1436,7 @@ export const HostsDialog: FC = () => {
   return (
     <Modal isOpen={isEditingHosts} onClose={onClose}>
       <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
-      <ModalContent mx="3" w="full" maxW="6xl">
+      <ModalContent mx="3" w="full" maxW="5xl">
         <ModalHeader pt={6} pb={4}>
           <HStack spacing={3} align="flex-start">
             <Icon color="primary">
