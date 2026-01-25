@@ -7,6 +7,7 @@ import {
   Badge,
   Box,
   Button,
+  CheckboxGroup,
   Select as ChakraSelect,
   Checkbox,
   Container,
@@ -124,6 +125,15 @@ const InfoIcon = chakra(InformationCircleIcon, {
   },
 });
 
+const subscriptionTypeOptions = [
+  { value: "v2ray", labelKey: "hostsDialog.subscriptionTypes.v2ray" },
+  { value: "v2ray-json", labelKey: "hostsDialog.subscriptionTypes.v2rayJson" },
+  { value: "clash", labelKey: "hostsDialog.subscriptionTypes.clash" },
+  { value: "clash-meta", labelKey: "hostsDialog.subscriptionTypes.clashMeta" },
+  { value: "sing-box", labelKey: "hostsDialog.subscriptionTypes.singBox" },
+  { value: "outline", labelKey: "hostsDialog.subscriptionTypes.outline" },
+];
+
 const hostsSchema = z.record(
   z.string().min(1),
   z.array(
@@ -155,6 +165,7 @@ const hostsSchema = z.record(
       use_sni_as_host: z.boolean().default(false),
       outbound_tag: z.string().nullable(),
       balancer_tags: z.array(z.string()).nullable(),
+      subscription_types: z.array(z.string()).nullable(),
     })
   )
 );
@@ -218,6 +229,7 @@ const AccordionInbound: FC<AccordionInboundType> = ({
       use_sni_as_host: false,
       outbound_tag: "",
       balancer_tags: [],
+      subscription_types: [],
     });
   };
   const duplicateHost = (index: number) => {
@@ -265,13 +277,6 @@ const AccordionInbound: FC<AccordionInboundType> = ({
       <AccordionPanel px={2} pb={2}>
         <VStack gap={3}>
           {hosts.map((host, index) => {
-            const hostValues = form.watch(`${hostKey}.${index}`);
-            const outboundTagValue = hostValues?.outbound_tag?.trim();
-            const balancerTagsValue = Array.isArray(hostValues?.balancer_tags)
-              ? hostValues.balancer_tags
-              : [];
-            const showBalancerTagsWarning =
-              !!outboundTagValue && balancerTagsValue.length > 0;
             return (
               <motion.div
                 key={host.id}
@@ -1009,17 +1014,61 @@ const AccordionInbound: FC<AccordionInboundType> = ({
                               }}
                             />
                           </FormControl>
-                          {showBalancerTagsWarning ? (
-                            <Text
-                              fontSize="xs"
-                              color="orange.400"
-                              textAlign="left"
-                              w="full"
-                            >
-                              {t("hostsDialog.balancerTagsWarning")}
-                            </Text>
-                          ) : null}
 
+                          <FormControl>
+                            <FormLabel
+                              display="flex"
+                              pb={1}
+                              alignItems="center"
+                              gap={1}
+                              justifyContent="space-between"
+                              m="0"
+                            >
+                              <span>{t("hostsDialog.subscriptionTypes")}</span>
+                            </FormLabel>
+                            <Controller
+                              control={form.control}
+                              name={`${hostKey}.${index}.subscription_types`}
+                              render={({ field }) => {
+                                const value = Array.isArray(field.value)
+                                  ? field.value
+                                  : [];
+                                return (
+                                  <CheckboxGroup
+                                    value={value}
+                                    onChange={(nextValue) => {
+                                      const normalized = Array.isArray(nextValue)
+                                        ? nextValue
+                                        : [];
+                                      field.onChange(
+                                        normalized.length > 0 ? normalized : null
+                                      );
+                                    }}
+                                  >
+                                    <HStack
+                                      alignItems="center"
+                                      flexWrap="wrap"
+                                      gap={2}
+                                      spacing={0}
+                                    >
+                                      {subscriptionTypeOptions.map((option) => (
+                                        <Checkbox
+                                          key={option.value}
+                                          value={option.value}
+                                          size="sm"
+                                        >
+                                          {t(option.labelKey)}
+                                        </Checkbox>
+                                      ))}
+                                    </HStack>
+                                  </CheckboxGroup>
+                                );
+                              }}
+                            />
+                            <Text fontSize="xs" color="gray.500">
+                              {t("hostsDialog.subscriptionTypesHelp")}
+                            </Text>
+                          </FormControl>
                           <FormControl
                             isInvalid={
                               !!(
@@ -1351,14 +1400,14 @@ export const HostsDialog: FC = () => {
   return (
     <Modal isOpen={isEditingHosts} onClose={onClose}>
       <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
-      <ModalContent mx="3" w="fit-content" maxW="3xl">
+      <ModalContent mx="3" w="full" maxW="6xl">
         <ModalHeader pt={6}>
           <Icon color="primary">
             <ModalIcon color="white" />
           </Icon>
         </ModalHeader>
         <ModalCloseButton mt={3} />
-        <ModalBody w="440px" pb={3} pt={3}>
+        <ModalBody w="full" pb={3} pt={3} maxH="75vh" overflowY="auto">
           <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(handleFormSubmit)}>
               <Text mb={3} opacity={0.8} fontSize="sm">
@@ -1372,20 +1421,24 @@ export const HostsDialog: FC = () => {
                     w="full"
                     allowToggle
                     allowMultiple
+                    display="grid"
+                    gap={3}
+                    gridTemplateColumns={{
+                      base: "1fr",
+                      lg: "repeat(2, minmax(0, 1fr))",
+                    }}
                     index={Object.keys(openAccordions).map((i) => parseInt(i))}
                   >
-                    <VStack w="full">
-                      {Object.keys(hosts).map((hostKey, index) => {
-                        return (
-                          <AccordionInbound
-                            toggleAccordion={() => toggleAccordion(index)}
-                            isOpen={openAccordions[String(index)]}
-                            key={hostKey}
-                            hostKey={hostKey}
-                          />
-                        );
-                      })}
-                    </VStack>
+                    {Object.keys(hosts).map((hostKey, index) => {
+                      return (
+                        <AccordionInbound
+                          toggleAccordion={() => toggleAccordion(index)}
+                          isOpen={openAccordions[String(index)]}
+                          key={hostKey}
+                          hostKey={hostKey}
+                        />
+                      );
+                    })}
                   </Accordion>
                 ) : (
                   "No inbound found. Please check your Xray config file."

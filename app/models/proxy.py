@@ -21,6 +21,16 @@ FRAGMENT_PATTERN = re.compile(r'^((\d{1,4}-\d{1,4})|(\d{1,4})),((\d{1,3}-\d{1,3}
 NOISE_PATTERN = re.compile(
     r'^(rand:(\d{1,4}-\d{1,4}|\d{1,4})|str:.+|hex:.+|base64:.+)(,(\d{1,4}-\d{1,4}|\d{1,4}))?(&(rand:(\d{1,4}-\d{1,4}|\d{1,4})|str:.+|hex:.+|base64:.+)(,(\d{1,4}-\d{1,4}|\d{1,4}))?)*$')
 
+SUBSCRIPTION_TYPES = {
+    "base64",
+    "clash",
+    "clash-meta",
+    "outline",
+    "sing-box",
+    "v2ray",
+    "v2ray-json",
+}
+
 
 class ProxyTypes(str, Enum):
     # proxy_type = protocol
@@ -157,6 +167,7 @@ class ProxyHost(BaseModel):
     use_sni_as_host: Union[bool, None] = None
     outbound_tag: Optional[str] = Field(None, nullable=True)
     balancer_tags: Optional[list[str]] = Field(None, nullable=True)
+    subscription_types: Optional[list[str]] = Field(None, nullable=True)
     model_config = ConfigDict(from_attributes=True)
 
     @field_validator("remark", mode="after")
@@ -199,6 +210,29 @@ class ProxyHost(BaseModel):
                     "Noise can't be longer that 2000 character"
                 )
         return v
+
+    @field_validator("subscription_types", mode="after")
+    @classmethod
+    def validate_subscription_types(cls, v):
+        if v is None:
+            return v
+        seen = set()
+        normalized: list[str] = []
+        for value in v:
+            if value is None:
+                continue
+            normalized_value = str(value).strip().lower()
+            if not normalized_value:
+                continue
+            if normalized_value == "base64":
+                normalized_value = "v2ray"
+            if normalized_value not in SUBSCRIPTION_TYPES:
+                raise ValueError(f"Unsupported subscription type: {value}")
+            if normalized_value in seen:
+                continue
+            seen.add(normalized_value)
+            normalized.append(normalized_value)
+        return normalized or None
 
 
 class ProxyInbound(BaseModel):
