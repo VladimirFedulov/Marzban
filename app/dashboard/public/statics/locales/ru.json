@@ -48,7 +48,6 @@
   "hostsDialog.fingerprint": "Fingerprint",
   "hostsDialog.outboundTag": "Оригинальный тег",
   "hostsDialog.balancerTags": "Теги балансера",
-  "hostsDialog.balancerTagsWarning": "Этот хост попадёт только в JSON-подписку, если заполнены оба поля.",
   "hostsDialog.subscriptionTypes": "Типы подписки",
   "hostsDialog.subscriptionTypesHelp": "Оставьте пустым, чтобы показывать хост во всех типах подписки.",
   "hostsDialog.subscriptionTypes.v2ray": "V2Ray (Base64)",

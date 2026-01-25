@@ -10,10 +10,11 @@ import {
   CheckboxGroup,
   Select as ChakraSelect,
   Checkbox,
-  Container,
+  Divider,
   FormControl,
   FormErrorMessage,
   FormLabel,
+  GridItem,
   HStack,
   IconButton,
   InputGroup,
@@ -35,6 +36,7 @@ import {
   Text,
   Tooltip,
   VStack,
+  SimpleGrid,
   chakra,
   useToast,
 } from "@chakra-ui/react";
@@ -304,7 +306,11 @@ const AccordionInbound: FC<AccordionInboundType> = ({
                   w="full"
                   borderRadius="4px"
                 >
-                  <HStack w="100%" alignItems="flex-start">
+                  <SimpleGrid
+                    w="full"
+                    columns={{ base: 1, md: 2 }}
+                    spacing={3}
+                  >
                     <FormControl
                       position="relative"
                       zIndex={10}
@@ -430,132 +436,134 @@ const AccordionInbound: FC<AccordionInboundType> = ({
                         <Error>{accordionErrors[index]?.remark?.message}</Error>
                       )}
                     </FormControl>
-                  </HStack>
-                  <FormControl
-                    isInvalid={
-                      !!(accordionErrors && accordionErrors[index]?.address)
-                    }
-                  >
-                    <InputGroup>
-                      <Input
-                        size="sm"
-                        borderRadius="4px"
-                        placeholder="Address (e.g. example.com)"
-                        {...form.register(hostKey + "." + index + ".address")}
-                      />
-                      <InputRightElement>
-                        <Popover isLazy placement="right">
-                          <PopoverTrigger>
-                            <Box mt="-8px">
-                              <InfoIcon />
-                            </Box>
-                          </PopoverTrigger>
-                          <Portal>
-                            <PopoverContent>
-                              <PopoverArrow />
-                              <PopoverCloseButton />
-                              <PopoverBody>
-                                <Box fontSize="xs">
-                                  <Text pr="20px">{t("hostsDialog.desc")}</Text>
-                                  <Text>
-                                    <Badge>
-                                      {"{"}SERVER_IP{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.currentServer")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}SERVER_IPV6{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.currentServerv6")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}USERNAME{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.username")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}DATA_USAGE{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.dataUsage")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}DATA_LEFT{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.remainingData")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}DATA_LIMIT{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.dataLimit")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}DAYS_LEFT{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.remainingDays")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}EXPIRE_DATE{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.expireDate")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}JALALI_EXPIRE_DATE{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.jalaliExpireDate")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}TIME_LEFT{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.remainingTime")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}STATUS_TEXT{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.statusText")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}STATUS_EMOJI{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.statusEmoji")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}PROTOCOL{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.proxyProtocol")}
-                                  </Text>
-                                  <Text mt={1}>
-                                    <Badge>
-                                      {"{"}TRANSPORT{"}"}
-                                    </Badge>{" "}
-                                    {t("hostsDialog.proxyMethod")}
-                                  </Text>
-                                </Box>
-                              </PopoverBody>
-                            </PopoverContent>
-                          </Portal>
-                        </Popover>
-                      </InputRightElement>
-                    </InputGroup>
-                    {accordionErrors && accordionErrors[index]?.address && (
-                      <Error>{accordionErrors[index]?.address?.message}</Error>
-                    )}
-                  </FormControl>
+                    <FormControl
+                      isInvalid={
+                        !!(accordionErrors && accordionErrors[index]?.address)
+                      }
+                    >
+                      <InputGroup>
+                        <Input
+                          size="sm"
+                          borderRadius="4px"
+                          placeholder="Address (e.g. example.com)"
+                          {...form.register(hostKey + "." + index + ".address")}
+                        />
+                        <InputRightElement>
+                          <Popover isLazy placement="right">
+                            <PopoverTrigger>
+                              <Box mt="-8px">
+                                <InfoIcon />
+                              </Box>
+                            </PopoverTrigger>
+                            <Portal>
+                              <PopoverContent>
+                                <PopoverArrow />
+                                <PopoverCloseButton />
+                                <PopoverBody>
+                                  <Box fontSize="xs">
+                                    <Text pr="20px">
+                                      {t("hostsDialog.desc")}
+                                    </Text>
+                                    <Text>
+                                      <Badge>
+                                        {"{"}SERVER_IP{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.currentServer")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}SERVER_IPV6{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.currentServerv6")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}USERNAME{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.username")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}DATA_USAGE{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.dataUsage")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}DATA_LEFT{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.remainingData")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}DATA_LIMIT{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.dataLimit")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}DAYS_LEFT{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.remainingDays")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}EXPIRE_DATE{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.expireDate")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}JALALI_EXPIRE_DATE{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.jalaliExpireDate")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}TIME_LEFT{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.remainingTime")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}STATUS_TEXT{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.statusText")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}STATUS_EMOJI{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.statusEmoji")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}PROTOCOL{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.proxyProtocol")}
+                                    </Text>
+                                    <Text mt={1}>
+                                      <Badge>
+                                        {"{"}TRANSPORT{"}"}
+                                      </Badge>{" "}
+                                      {t("hostsDialog.proxyMethod")}
+                                    </Text>
+                                  </Box>
+                                </PopoverBody>
+                              </PopoverContent>
+                            </Portal>
+                          </Popover>
+                        </InputRightElement>
+                      </InputGroup>
+                      {accordionErrors && accordionErrors[index]?.address && (
+                        <Error>{accordionErrors[index]?.address?.message}</Error>
+                      )}
+                    </FormControl>
+                  </SimpleGrid>
 
                   <Accordion w="full" allowToggle>
                     <AccordionItem border="0">
-                      <div style={{ display: "flex", alignItems: "center" }}>
+                      <HStack alignItems="center" justifyContent="space-between">
                         <AccordionButton
                           display="flex"
                           px={0}
@@ -574,80 +582,84 @@ const AccordionInbound: FC<AccordionInboundType> = ({
                             {t("hostsDialog.advancedOptions")}
                             <AccordionIcon fontSize="sm" ml={1} />
                           </Text>
-
-                          <Container flex="1" px="0" display={"contents"}>
-                            <Controller
-                              control={form.control}
-                              name={`${hostKey}.${index}.is_disabled`}
-                              render={({ field }) => {
-                                return (
-                                  <Switch
-                                    mx="1.5"
-                                    colorScheme="primary"
-                                    {...field}
-                                    value={undefined}
-                                    isChecked={!field.value}
-                                    onChange={(e) => {
-                                      console.log(e.target.checked);
-                                      field.onChange(!e.target.checked);
-                                    }}
-                                  />
-                                );
-                              }}
-                            />
-                            <Tooltip label="Delete" placement="top">
+                        </AccordionButton>
+                        <HStack spacing={1}>
+                          <Controller
+                            control={form.control}
+                            name={`${hostKey}.${index}.is_disabled`}
+                            render={({ field }) => {
+                              return (
+                                <Switch
+                                  mx="1.5"
+                                  colorScheme="primary"
+                                  {...field}
+                                  value={undefined}
+                                  isChecked={!field.value}
+                                  onChange={(e) => {
+                                    field.onChange(!e.target.checked);
+                                  }}
+                                />
+                              );
+                            }}
+                          />
+                          <Tooltip label="Duplicate" placement="top">
+                            <IconButton
+                              aria-label="Duplicate"
+                              size="sm"
+                              colorScheme="white"
+                              variant="ghost"
+                              onClick={() => duplicateHost(index)}
+                            >
+                              <DuplicateIcon />
+                            </IconButton>
+                          </Tooltip>
+                          {index < hosts.length - 1 && (
+                            <Tooltip label="Move Down" placement="top">
                               <IconButton
-                                aria-label="Delete"
+                                aria-label="DownIcon"
                                 size="sm"
-                                colorScheme="red"
+                                colorScheme="white"
                                 variant="ghost"
-                                onClick={removeHost.bind(null, index)}
+                                onClick={() => moveHostPosition(index, "down")}
                               >
-                                <DeleteIcon />
+                                <DownIcon />
                               </IconButton>
                             </Tooltip>
-                          </Container>
-                        </AccordionButton>
-                        <Tooltip label="Duplicate" placement="top">
-                          <IconButton
-                            aria-label="Duplicate"
-                            size="sm"
-                            colorScheme="white"
-                            variant="ghost"
-                            onClick={() => duplicateHost(index)}
-                          >
-                            <DuplicateIcon />
-                          </IconButton>
-                        </Tooltip>
-                        {index < hosts.length - 1 && (
-                          <Tooltip label="Move Down" placement="top">
+                          )}
+                          {index > 0 && (
+                            <Tooltip label="Move Up" placement="top">
+                              <IconButton
+                                aria-label="UpIcon"
+                                size="sm"
+                                colorScheme="white"
+                                variant="ghost"
+                                onClick={() => moveHostPosition(index, "up")}
+                              >
+                                <UpIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          <Tooltip label="Delete" placement="top">
                             <IconButton
-                              aria-label="DownIcon"
+                              aria-label="Delete"
                               size="sm"
-                              colorScheme="white"
+                              colorScheme="red"
                               variant="ghost"
-                              onClick={() => moveHostPosition(index, "down")}
+                              onClick={removeHost.bind(null, index)}
                             >
-                              <DownIcon />
+                              <DeleteIcon />
                             </IconButton>
                           </Tooltip>
-                        )}
-                        {index > 0 && (
-                          <Tooltip label="Move Up" placement="top">
-                            <IconButton
-                              aria-label="UpIcon"
-                              size="sm"
-                              colorScheme="white"
-                              variant="ghost"
-                              onClick={() => moveHostPosition(index, "up")}
-                            >
-                              <UpIcon />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </div>
+                        </HStack>
+                      </HStack>
                       <AccordionPanel w="full" p={1}>
-                        <VStack key={index} w="full" borderRadius="4px">
+                        <SimpleGrid
+                          key={index}
+                          w="full"
+                          borderRadius="4px"
+                          columns={{ base: 1, md: 2 }}
+                          spacing={3}
+                        >
                           <FormControl
                             isInvalid={
                               !!(
@@ -1015,296 +1027,320 @@ const AccordionInbound: FC<AccordionInboundType> = ({
                             />
                           </FormControl>
 
-                          <FormControl>
-                            <FormLabel
-                              display="flex"
-                              pb={1}
-                              alignItems="center"
-                              gap={1}
-                              justifyContent="space-between"
-                              m="0"
-                            >
-                              <span>{t("hostsDialog.subscriptionTypes")}</span>
-                            </FormLabel>
-                            <Controller
-                              control={form.control}
-                              name={`${hostKey}.${index}.subscription_types`}
-                              render={({ field }) => {
-                                const value = Array.isArray(field.value)
-                                  ? field.value
-                                  : [];
-                                return (
-                                  <CheckboxGroup
-                                    value={value}
-                                    onChange={(nextValue) => {
-                                      const normalized = Array.isArray(nextValue)
-                                        ? nextValue
-                                        : [];
-                                      field.onChange(
-                                        normalized.length > 0 ? normalized : null
-                                      );
-                                    }}
-                                  >
-                                    <HStack
-                                      alignItems="center"
-                                      flexWrap="wrap"
-                                      gap={2}
-                                      spacing={0}
+                          <GridItem colSpan={{ base: 1, md: 2 }}>
+                            <FormControl>
+                              <FormLabel
+                                display="flex"
+                                pb={1}
+                                alignItems="center"
+                                gap={1}
+                                justifyContent="space-between"
+                                m="0"
+                              >
+                                <span>
+                                  {t("hostsDialog.subscriptionTypes")}
+                                </span>
+                              </FormLabel>
+                              <Controller
+                                control={form.control}
+                                name={`${hostKey}.${index}.subscription_types`}
+                                render={({ field }) => {
+                                  const value = Array.isArray(field.value)
+                                    ? field.value
+                                    : [];
+                                  return (
+                                    <CheckboxGroup
+                                      value={value}
+                                      onChange={(nextValue) => {
+                                        const normalized = Array.isArray(
+                                          nextValue
+                                        )
+                                          ? nextValue
+                                          : [];
+                                        field.onChange(
+                                          normalized.length > 0
+                                            ? normalized
+                                            : null
+                                        );
+                                      }}
                                     >
-                                      {subscriptionTypeOptions.map((option) => (
-                                        <Checkbox
-                                          key={option.value}
-                                          value={option.value}
-                                          size="sm"
-                                        >
-                                          {t(option.labelKey)}
-                                        </Checkbox>
-                                      ))}
-                                    </HStack>
-                                  </CheckboxGroup>
-                                );
-                              }}
-                            />
-                            <Text fontSize="xs" color="gray.500">
-                              {t("hostsDialog.subscriptionTypesHelp")}
-                            </Text>
-                          </FormControl>
-                          <FormControl
-                            isInvalid={
-                              !!(
-                                accordionErrors &&
-                                accordionErrors[index]?.fragment_setting
-                              )
-                            }
-                          >
-                            <FormLabel
-                              display="flex"
-                              pb={1}
-                              alignItems="center"
-                              gap={1}
-                              justifyContent="space-between"
-                              m="0"
+                                      <HStack
+                                        alignItems="center"
+                                        flexWrap="wrap"
+                                        gap={2}
+                                        spacing={0}
+                                      >
+                                        {subscriptionTypeOptions.map(
+                                          (option) => (
+                                            <Checkbox
+                                              key={option.value}
+                                              value={option.value}
+                                              size="sm"
+                                            >
+                                              {t(option.labelKey)}
+                                            </Checkbox>
+                                          )
+                                        )}
+                                      </HStack>
+                                    </CheckboxGroup>
+                                  );
+                                }}
+                              />
+                              <Text fontSize="xs" color="gray.500">
+                                {t("hostsDialog.subscriptionTypesHelp")}
+                              </Text>
+                            </FormControl>
+                          </GridItem>
+                          <GridItem colSpan={{ base: 1, md: 2 }}>
+                            <FormControl
+                              isInvalid={
+                                !!(
+                                  accordionErrors &&
+                                  accordionErrors[index]?.fragment_setting
+                                )
+                              }
                             >
-                              <span>{t("hostsDialog.fragment")}</span>
+                              <FormLabel
+                                display="flex"
+                                pb={1}
+                                alignItems="center"
+                                gap={1}
+                                justifyContent="space-between"
+                                m="0"
+                              >
+                                <span>{t("hostsDialog.fragment")}</span>
 
-                              <Popover isLazy placement="right">
-                                <PopoverTrigger>
-                                  <InfoIcon />
-                                </PopoverTrigger>
-                                <Portal>
-                                  <PopoverContent p={2}>
-                                    <PopoverArrow />
-                                    <PopoverCloseButton />
-                                    <Text fontSize="xs" pr={5}>
-                                      {t("hostsDialog.fragment.info")}
-                                    </Text>
-                                    <Text fontSize="xs" pr={5} pt={2} pb={1}>
-                                      {t("hostsDialog.fragment.info.examples")}
-                                    </Text>
-                                    <Text fontSize="xs" pr={5}>
-                                      100-200,10-20,tlshello
-                                    </Text>
-                                    <Text fontSize="xs" pr={5}>
-                                      100-200,10-20,1-3
-                                    </Text>
-                                    <Text fontSize="xs" pr={5} pt="3">
-                                      {t("hostsDialog.fragment.info.attention")}
-                                    </Text>
-                                  </PopoverContent>
-                                </Portal>
-                              </Popover>
-                            </FormLabel>
-                            <Input
-                              size="sm"
-                              borderRadius="4px"
-                              placeholder="Fragment settings by pattern"
-                              {...form.register(
-                                hostKey + "." + index + ".fragment_setting"
-                              )}
-                            />
-                            {accordionErrors &&
-                              accordionErrors[index]?.fragment_setting && (
-                                <Error>
-                                  {
-                                    accordionErrors[index]?.fragment_setting
-                                      ?.message
-                                  }
-                                </Error>
-                              )}
-                          </FormControl>
-
-                          <FormControl
-                            isInvalid={
-                              !!(
-                                accordionErrors &&
-                                accordionErrors[index]?.noise_setting
-                              )
-                            }
-                          >
-                            <FormLabel
-                              display="flex"
-                              pb={1}
-                              alignItems="center"
-                              gap={1}
-                              justifyContent="space-between"
-                              m="0"
-                            >
-                              <span>{t("hostsDialog.noise")}</span>
-
-                              <Popover isLazy placement="right">
-                                <PopoverTrigger>
-                                  <InfoIcon />
-                                </PopoverTrigger>
-                                <Portal>
-                                  <PopoverContent p={2}>
-                                    <PopoverArrow />
-                                    <PopoverCloseButton />
-                                    <Text fontSize="xs" pr={5}>
-                                      {t("hostsDialog.noise.info")}
-                                    </Text>
-                                    <Text fontSize="xs" pr={5} pt={2} pb={1}>
-                                      {t("hostsDialog.noise.info.examples")}
-                                    </Text>
-                                    <Text fontSize="xs" pr={5}>
-                                      rand:10-20,10-20
-                                    </Text>
-                                    <Text fontSize="xs" pr={5}>
-                                      rand:10-20,10-20&base64:7nQBAAABAAAAAAAABnQtcmluZwZtc2VkZ2UDbmV0AAABAAE=,10-25
-                                    </Text>
-                                    <Text fontSize="xs" pr={5} pt="3">
-                                      {t("hostsDialog.noise.info.attention")}
-                                    </Text>
-                                  </PopoverContent>
-                                </Portal>
-                              </Popover>
-                            </FormLabel>
-                            <Input
-                              size="sm"
-                              borderRadius="4px"
-                              placeholder="Noise settings by pattern"
-                              {...form.register(
-                                hostKey + "." + index + ".noise_setting"
-                              )}
-                            />
-                            {accordionErrors &&
-                              accordionErrors[index]?.noise_setting && (
-                                <Error>
-                                  {
-                                    accordionErrors[index]?.noise_setting
-                                      ?.message
-                                  }
-                                </Error>
-                              )}
-                          </FormControl>
-
-
-                          <FormControl
-                            isInvalid={
-                              !!(
-                                accordionErrors &&
-                                accordionErrors[index]?.use_sni_as_host
-                              )
-                            }
-                          >
-                            <Checkbox
-                              {...form.register(
-                                hostKey + "." + index + ".use_sni_as_host"
-                              )}
-                            >
-                              <FormLabel>
-                                {t("hostsDialog.useSniAsHost")}
+                                <Popover isLazy placement="right">
+                                  <PopoverTrigger>
+                                    <InfoIcon />
+                                  </PopoverTrigger>
+                                  <Portal>
+                                    <PopoverContent p={2}>
+                                      <PopoverArrow />
+                                      <PopoverCloseButton />
+                                      <Text fontSize="xs" pr={5}>
+                                        {t("hostsDialog.fragment.info")}
+                                      </Text>
+                                      <Text fontSize="xs" pr={5} pt={2} pb={1}>
+                                        {t("hostsDialog.fragment.info.examples")}
+                                      </Text>
+                                      <Text fontSize="xs" pr={5}>
+                                        100-200,10-20,tlshello
+                                      </Text>
+                                      <Text fontSize="xs" pr={5}>
+                                        100-200,10-20,1-3
+                                      </Text>
+                                      <Text fontSize="xs" pr={5} pt="3">
+                                        {t(
+                                          "hostsDialog.fragment.info.attention"
+                                        )}
+                                      </Text>
+                                    </PopoverContent>
+                                  </Portal>
+                                </Popover>
                               </FormLabel>
-                            </Checkbox>
-                            {accordionErrors &&
-                              accordionErrors[index]?.use_sni_as_host && (
-                                <Error>
-                                  {
-                                    accordionErrors[index]?.use_sni_as_host
-                                      ?.message
-                                  }
-                                </Error>
-                              )}
-                        </FormControl>
-                         <FormControl
-                            isInvalid={
-                              !!(
-                                accordionErrors &&
-                                accordionErrors[index]?.allowinsecure
-                              )
-                            }
-                          >
-                            <Checkbox
-                              {...form.register(
-                                hostKey + "." + index + ".allowinsecure"
-                              )}
-                              name={hostKey + "." + index + ".allowinsecure"}
-                            >
-                              <FormLabel>
-                                {t("hostsDialog.allowinsecure")}
-                              </FormLabel>
+                              <Input
+                                size="sm"
+                                borderRadius="4px"
+                                placeholder="Fragment settings by pattern"
+                                {...form.register(
+                                  hostKey + "." + index + ".fragment_setting"
+                                )}
+                              />
                               {accordionErrors &&
-                                accordionErrors[index]?.allowinsecure && (
+                                accordionErrors[index]?.fragment_setting && (
                                   <Error>
                                     {
-                                      accordionErrors[index]?.allowinsecure
+                                      accordionErrors[index]?.fragment_setting
                                         ?.message
                                     }
                                   </Error>
                                 )}
-                            </Checkbox>
-                          </FormControl>
-                          <FormControl
-                            isInvalid={
-                              !!(
-                                accordionErrors &&
-                                accordionErrors[index]?.mux_enable
-                              )
-                            }
-                          >
-                            <Checkbox
-                              {...form.register(
-                                hostKey + "." + index + ".mux_enable"
-                              )}
+                            </FormControl>
+                          </GridItem>
+
+                          <GridItem colSpan={{ base: 1, md: 2 }}>
+                            <FormControl
+                              isInvalid={
+                                !!(
+                                  accordionErrors &&
+                                  accordionErrors[index]?.noise_setting
+                                )
+                              }
                             >
-                              <FormLabel>
-                                {t("hostsDialog.muxEnable")}
+                              <FormLabel
+                                display="flex"
+                                pb={1}
+                                alignItems="center"
+                                gap={1}
+                                justifyContent="space-between"
+                                m="0"
+                              >
+                                <span>{t("hostsDialog.noise")}</span>
+
+                                <Popover isLazy placement="right">
+                                  <PopoverTrigger>
+                                    <InfoIcon />
+                                  </PopoverTrigger>
+                                  <Portal>
+                                    <PopoverContent p={2}>
+                                      <PopoverArrow />
+                                      <PopoverCloseButton />
+                                      <Text fontSize="xs" pr={5}>
+                                        {t("hostsDialog.noise.info")}
+                                      </Text>
+                                      <Text fontSize="xs" pr={5} pt={2} pb={1}>
+                                        {t("hostsDialog.noise.info.examples")}
+                                      </Text>
+                                      <Text fontSize="xs" pr={5}>
+                                        rand:10-20,10-20
+                                      </Text>
+                                      <Text fontSize="xs" pr={5}>
+                                        rand:10-20,10-20&base64:7nQBAAABAAAAAAAABnQtcmluZwZtc2VkZ2UDbmV0AAABAAE=,10-25
+                                      </Text>
+                                      <Text fontSize="xs" pr={5} pt="3">
+                                        {t("hostsDialog.noise.info.attention")}
+                                      </Text>
+                                    </PopoverContent>
+                                  </Portal>
+                                </Popover>
                               </FormLabel>
-                            </Checkbox>
-                            {accordionErrors &&
-                              accordionErrors[index]?.mux_enable && (
-                                <Error>
-                                  {accordionErrors[index]?.mux_enable?.message}
-                                </Error>
-                              )}
-                          </FormControl>
-                          <FormControl
-                            isInvalid={
-                              !!(
-                                accordionErrors &&
-                                accordionErrors[index]?.random_user_agent
-                              )
-                            }
-                          >
-                            <Checkbox
-                              {...form.register(
-                                hostKey + "." + index + ".random_user_agent"
-                              )}
-                            >
-                              <FormLabel>
-                                {t("hostsDialog.randomUserAgent")}
-                              </FormLabel>
-                            </Checkbox>
-                            {accordionErrors &&
-                              accordionErrors[index]?.random_user_agent && (
-                                <Error>
-                                  {
-                                    accordionErrors[index]?.random_user_agent
-                                      ?.message
+                              <Input
+                                size="sm"
+                                borderRadius="4px"
+                                placeholder="Noise settings by pattern"
+                                {...form.register(
+                                  hostKey + "." + index + ".noise_setting"
+                                )}
+                              />
+                              {accordionErrors &&
+                                accordionErrors[index]?.noise_setting && (
+                                  <Error>
+                                    {
+                                      accordionErrors[index]?.noise_setting
+                                        ?.message
+                                    }
+                                  </Error>
+                                )}
+                            </FormControl>
+                          </GridItem>
+
+                          <GridItem colSpan={{ base: 1, md: 2 }}>
+                            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={2}>
+                              <FormControl
+                                isInvalid={
+                                  !!(
+                                    accordionErrors &&
+                                    accordionErrors[index]?.use_sni_as_host
+                                  )
+                                }
+                              >
+                                <Checkbox
+                                  {...form.register(
+                                    hostKey + "." + index + ".use_sni_as_host"
+                                  )}
+                                >
+                                  <FormLabel>
+                                    {t("hostsDialog.useSniAsHost")}
+                                  </FormLabel>
+                                </Checkbox>
+                                {accordionErrors &&
+                                  accordionErrors[index]?.use_sni_as_host && (
+                                    <Error>
+                                      {
+                                        accordionErrors[index]?.use_sni_as_host
+                                          ?.message
+                                      }
+                                    </Error>
+                                  )}
+                              </FormControl>
+                              <FormControl
+                                isInvalid={
+                                  !!(
+                                    accordionErrors &&
+                                    accordionErrors[index]?.allowinsecure
+                                  )
+                                }
+                              >
+                                <Checkbox
+                                  {...form.register(
+                                    hostKey + "." + index + ".allowinsecure"
+                                  )}
+                                  name={
+                                    hostKey + "." + index + ".allowinsecure"
                                   }
-                                </Error>
-                              )}
-                          </FormControl>
-                        </VStack>
+                                >
+                                  <FormLabel>
+                                    {t("hostsDialog.allowinsecure")}
+                                  </FormLabel>
+                                </Checkbox>
+                                {accordionErrors &&
+                                  accordionErrors[index]?.allowinsecure && (
+                                    <Error>
+                                      {
+                                        accordionErrors[index]?.allowinsecure
+                                          ?.message
+                                      }
+                                    </Error>
+                                  )}
+                              </FormControl>
+                              <FormControl
+                                isInvalid={
+                                  !!(
+                                    accordionErrors &&
+                                    accordionErrors[index]?.mux_enable
+                                  )
+                                }
+                              >
+                                <Checkbox
+                                  {...form.register(
+                                    hostKey + "." + index + ".mux_enable"
+                                  )}
+                                >
+                                  <FormLabel>
+                                    {t("hostsDialog.muxEnable")}
+                                  </FormLabel>
+                                </Checkbox>
+                                {accordionErrors &&
+                                  accordionErrors[index]?.mux_enable && (
+                                    <Error>
+                                      {
+                                        accordionErrors[index]?.mux_enable
+                                          ?.message
+                                      }
+                                    </Error>
+                                  )}
+                              </FormControl>
+                              <FormControl
+                                isInvalid={
+                                  !!(
+                                    accordionErrors &&
+                                    accordionErrors[index]?.random_user_agent
+                                  )
+                                }
+                              >
+                                <Checkbox
+                                  {...form.register(
+                                    hostKey + "." + index + ".random_user_agent"
+                                  )}
+                                >
+                                  <FormLabel>
+                                    {t("hostsDialog.randomUserAgent")}
+                                  </FormLabel>
+                                </Checkbox>
+                                {accordionErrors &&
+                                  accordionErrors[index]?.random_user_agent && (
+                                    <Error>
+                                      {
+                                        accordionErrors[index]?.random_user_agent
+                                          ?.message
+                                      }
+                                    </Error>
+                                  )}
+                              </FormControl>
+                            </SimpleGrid>
+                          </GridItem>
+                        </SimpleGrid>
                       </AccordionPanel>
                     </AccordionItem>
                   </Accordion>
@@ -1401,63 +1437,83 @@ export const HostsDialog: FC = () => {
     <Modal isOpen={isEditingHosts} onClose={onClose}>
       <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
       <ModalContent mx="3" w="full" maxW="6xl">
-        <ModalHeader pt={6}>
-          <Icon color="primary">
-            <ModalIcon color="white" />
-          </Icon>
-        </ModalHeader>
-        <ModalCloseButton mt={3} />
-        <ModalBody w="full" pb={3} pt={3} maxH="75vh" overflowY="auto">
-          <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(handleFormSubmit)}>
-              <Text mb={3} opacity={0.8} fontSize="sm">
+        <ModalHeader pt={6} pb={4}>
+          <HStack spacing={3} align="flex-start">
+            <Icon color="primary">
+              <ModalIcon color="white" />
+            </Icon>
+            <VStack align="flex-start" spacing={1}>
+              <Text fontSize="lg" fontWeight="semibold">
                 {t("hostsDialog.title")}
               </Text>
-              {isLoading && t("hostsDialog.loading")}
-              {!isLoading &&
-                hosts &&
-                (Object.keys(hosts).length > 0 ? (
-                  <Accordion
-                    w="full"
-                    allowToggle
-                    allowMultiple
-                    display="grid"
-                    gap={3}
-                    gridTemplateColumns={{
-                      base: "1fr",
-                      lg: "repeat(2, minmax(0, 1fr))",
-                    }}
-                    index={Object.keys(openAccordions).map((i) => parseInt(i))}
-                  >
-                    {Object.keys(hosts).map((hostKey, index) => {
-                      return (
-                        <AccordionInbound
-                          toggleAccordion={() => toggleAccordion(index)}
-                          isOpen={openAccordions[String(index)]}
-                          key={hostKey}
-                          hostKey={hostKey}
-                        />
-                      );
-                    })}
-                  </Accordion>
-                ) : (
-                  "No inbound found. Please check your Xray config file."
-                ))}
+              <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }}>
+                {t("hostsDialog.desc")}
+              </Text>
+            </VStack>
+          </HStack>
+        </ModalHeader>
+        <ModalCloseButton mt={3} />
+        <ModalBody w="full" pb={3} pt={0} maxH="75vh" overflowY="auto">
+          <FormProvider {...form}>
+            <form onSubmit={form.handleSubmit(handleFormSubmit)}>
+              <VStack align="stretch" spacing={4}>
+                <Divider />
+                {isLoading && t("hostsDialog.loading")}
+                {!isLoading &&
+                  hosts &&
+                  (Object.keys(hosts).length > 0 ? (
+                    <Box
+                      border="1px solid"
+                      borderRadius="8px"
+                      p={3}
+                      _dark={{ borderColor: "gray.600", bg: "whiteAlpha.50" }}
+                      _light={{ borderColor: "gray.200", bg: "gray.50" }}
+                    >
+                      <Accordion
+                        w="full"
+                        allowToggle
+                        allowMultiple
+                        display="grid"
+                        gap={3}
+                        gridTemplateColumns={{
+                          base: "1fr",
+                          lg: "repeat(2, minmax(0, 1fr))",
+                        }}
+                        index={Object.keys(openAccordions).map((i) =>
+                          parseInt(i)
+                        )}
+                      >
+                        {Object.keys(hosts).map((hostKey, index) => {
+                          return (
+                            <AccordionInbound
+                              toggleAccordion={() => toggleAccordion(index)}
+                              isOpen={openAccordions[String(index)]}
+                              key={hostKey}
+                              hostKey={hostKey}
+                            />
+                          );
+                        })}
+                      </Accordion>
+                    </Box>
+                  ) : (
+                    "No inbound found. Please check your Xray config file."
+                  ))}
 
-              <HStack justifyContent="flex-end" py={2}>
-                <Button
-                  variant="solid"
-                  mt="2"
-                  type="submit"
-                  colorScheme="primary"
-                  size="sm"
-                  px={5}
-                  isLoading={isPostLoading}
-                  disabled={isPostLoading}
-                >
-                  {t("hostsDialog.apply")}
-                </Button>
-              </HStack>
+                <HStack justifyContent="flex-end" pb={2}>
+                  <Button
+                    variant="solid"
+                    mt="2"
+                    type="submit"
+                    colorScheme="primary"
+                    size="sm"
+                    px={5}
+                    isLoading={isPostLoading}
+                    disabled={isPostLoading}
+                  >
+                    {t("hostsDialog.apply")}
+                  </Button>
+                </HStack>
+              </VStack>
             </form>
           </FormProvider>
         </ModalBody>

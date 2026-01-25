@@ -48,7 +48,6 @@
   "hostsDialog.fingerprint": "Fingerprint",
   "hostsDialog.outboundTag": "Original tag",
   "hostsDialog.balancerTags": "Balancer tags",
-  "hostsDialog.balancerTagsWarning": "This host will appear only in the JSON subscription when both tags are set.",
   "hostsDialog.subscriptionTypes": "Subscription types",
   "hostsDialog.subscriptionTypesHelp": "Leave empty to show this host in all subscription types.",
   "hostsDialog.subscriptionTypes.v2ray": "V2Ray (Base64)",
