@@ -1466,6 +1466,9 @@ export const HostsDialog: FC = () => {
                       border="1px solid"
                       borderRadius="8px"
                       p={3}
+                      w="full"
+                      maxW="5xl"
+                      mx="auto"
                       _dark={{ borderColor: "gray.600", bg: "whiteAlpha.50" }}
                       _light={{ borderColor: "gray.200", bg: "gray.50" }}
                     >
@@ -1473,12 +1476,9 @@ export const HostsDialog: FC = () => {
                         w="full"
                         allowToggle
                         allowMultiple
-                        display="grid"
+                        display="flex"
+                        flexDirection="column"
                         gap={3}
-                        gridTemplateColumns={{
-                          base: "1fr",
-                          lg: "repeat(2, minmax(0, 1fr))",
-                        }}
                         index={Object.keys(openAccordions).map((i) =>
                           parseInt(i)
                         )}
