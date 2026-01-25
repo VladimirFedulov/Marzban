@@ -1484,9 +1484,6 @@ export const HostsDialog: FC = () => {
               <ModalIcon color="white" />
             </Icon>
             <VStack align="flex-start" spacing={1}>
-              <Text fontSize="lg" fontWeight="semibold">
-                {t("hostsDialog.title")}
-              </Text>
               <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }}>
                 {t("hostsDialog.desc")}
               </Text>
