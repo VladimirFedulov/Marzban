@@ -54,7 +54,6 @@
   "hostsDialog.fingerprint": "اثرانگشت",
   "hostsDialog.outboundTag": "برچسب اصلی",
   "hostsDialog.balancerTags": "برچسب‌های بالانسر",
-  "hostsDialog.balancerTagsWarning": "اگر هر دو فیلد پر شوند، این هاست فقط در اشتراک JSON نمایش داده می‌شود.",
   "hostsDialog.fragment": "الگو فرگمنت",
   "hostsDialog.fragment.info": "length,interval,packet (e.g. 10-100,100-200,tlshello)",
   "hostsDialog.fragment.info.attention": "توجه: در حال حاضر، این ویژگی فقط در streisand >= 1.6.12 و v2rayNG >= 1.8.16 (پیکربندی سفارشی) پشتیبانی می شود",
