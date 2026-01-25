@@ -66,6 +66,7 @@ def generate_v2ray_links(
         proxies,
         format_variables,
         conf=conf,
+        config_format="v2ray",
         reverse=reverse,
         custom_remarks=custom_remarks,
     )
@@ -125,18 +126,25 @@ def _build_fake_settings(protocol: str) -> dict:
     }
 
 
-def _has_balancer_tags(balancer_tags: object) -> bool:
-    if isinstance(balancer_tags, str):
-        return bool(balancer_tags.strip())
-    if isinstance(balancer_tags, list):
-        return any(str(tag).strip() for tag in balancer_tags)
-    return False
+SUBSCRIPTION_TYPE_ALIASES = {
+    "v2ray": {"v2ray", "base64"},
+    "v2ray-json": {"v2ray-json"},
+    "clash": {"clash"},
+    "clash-meta": {"clash-meta"},
+    "sing-box": {"sing-box"},
+    "outline": {"outline"},
+}
 
 
-def _is_json_only_host(inbound: dict) -> bool:
-    outbound_tag = inbound.get("outbound_tag")
-    balancer_tags = inbound.get("balancer_tags")
-    return bool(outbound_tag and _has_balancer_tags(balancer_tags))
+def _host_allows_subscription_type(host: dict, config_format: str) -> bool:
+    subscription_types = host.get("subscription_types")
+    if not subscription_types:
+        return True
+    allowed = {str(value).strip().lower() for value in subscription_types if str(value).strip()}
+    if not allowed:
+        return True
+    config_aliases = SUBSCRIPTION_TYPE_ALIASES.get(config_format, {config_format})
+    return bool(allowed.intersection(config_aliases))
 
 
 def generate_fake_subscription(
@@ -215,6 +223,7 @@ def generate_clash_subscription(
         proxies,
         format_variables,
         conf=conf,
+        config_format="clash-meta" if is_meta else "clash",
         reverse=reverse,
         custom_remarks=custom_remarks,
     )
@@ -235,6 +244,7 @@ def generate_singbox_subscription(
         proxies,
         format_variables,
         conf=conf,
+        config_format="sing-box",
         reverse=reverse,
         custom_remarks=custom_remarks,
     )
@@ -255,6 +265,7 @@ def generate_outline_subscription(
         proxies,
         format_variables,
         conf=conf,
+        config_format="outline",
         reverse=reverse,
         custom_remarks=custom_remarks,
     )
@@ -275,6 +286,7 @@ def generate_v2ray_json_subscription(
         proxies,
         format_variables,
         conf=conf,
+        config_format="v2ray-json",
         reverse=reverse,
         custom_remarks=custom_remarks,
     )
@@ -453,6 +465,7 @@ def process_inbounds_and_tags(
             ClashMetaConfiguration,
             OutlineConfiguration
         ],
+        config_format: str,
         reverse=False,
         custom_remarks: list[str] | None = None,
 ) -> Union[List, str]:
@@ -490,7 +503,7 @@ def process_inbounds_and_tags(
                     )
 
             for host in hosts:
-                if not isinstance(conf, V2rayJsonConfig) and _is_json_only_host(host):
+                if not _host_allows_subscription_type(host, config_format):
                     continue
                 host_inbound = inbound.copy()
                 sni = ""
@@ -570,8 +583,6 @@ def process_inbounds_and_tags(
             entries = [entry for idx, entry in enumerate(entries) if idx in target_index_set]
 
     for entry in entries:
-        if not isinstance(conf, V2rayJsonConfig) and _is_json_only_host(entry["inbound"]):
-            continue
         conf.add(
             remark=entry["remark"],
             address=entry["address"],
