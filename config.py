@@ -267,6 +267,9 @@ def _cast_hwid_device_limit_mode(value):
 HWID_DEVICE_LIMIT_ENABLED = config(
     "HWID_DEVICE_LIMIT_ENABLED", cast=_cast_hwid_device_limit_mode, default="disabled"
 )
+HWID_LOG_MISSING_IN_LOGGING_MODE = config(
+    "HWID_LOG_MISSING_IN_LOGGING_MODE", default=False, cast=bool
+)
 HWID_FALLBACK_DEVICE_LIMIT = config("HWID_FALLBACK_DEVICE_LIMIT", cast=int, default=1)
 HWID_DEVICE_RETENTION_DAYS = config("HWID_DEVICE_RETENTION_DAYS", cast=int, default=-1)
 

@@ -349,6 +349,8 @@
   "settings.subscriptionCustomNotesHwidLimitHelp": "Заметки, показываемые при блокировке подписки по лимиту HWID.",
   "settings.hwidDeviceLimitEnabled": "Режим лимита HWID",
   "settings.hwidDeviceLimitEnabledHelp": "Выберите режим применения лимита устройств по HWID (по умолчанию: отключено).",
+  "settings.hwidLogMissingInLoggingMode": "Записывать обращения без HWID в логирующем режиме",
+  "settings.hwidLogMissingInLoggingModeHelp": "В режиме логирования сохранять обращения без HWID (требуется User-Agent).",
   "settings.hwidLimitEnabled": "Включено",
   "settings.hwidLimitDisabled": "Выключено",
   "settings.hwidLimitLogging": "Логирование",

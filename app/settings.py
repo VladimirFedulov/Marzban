@@ -74,6 +74,7 @@ SETTINGS = [
         "str",
         allowed_values=("enabled", "disabled", "logging"),
     ),
+    SettingDefinition("HWID_LOG_MISSING_IN_LOGGING_MODE", "bool"),
     SettingDefinition("HWID_FALLBACK_DEVICE_LIMIT", "int"),
     SettingDefinition("HWID_DEVICE_RETENTION_DAYS", "int"),
     SettingDefinition("CUSTOM_TEMPLATES_DIRECTORY", "str"),

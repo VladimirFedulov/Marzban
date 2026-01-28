@@ -1,3 +1,4 @@
+import hashlib
 import re
 from threading import Lock
 from datetime import datetime, timedelta
@@ -98,6 +99,11 @@ def _should_update_subscription_metadata(dbuser: User) -> bool:
     return datetime.utcnow() - last_update >= timedelta(seconds=_SUBSCRIPTION_METADATA_UPDATE_SECONDS)
 
 
+def _build_missing_hwid(user_agent: str) -> str:
+    digest = hashlib.sha256(user_agent.encode("utf-8")).hexdigest()
+    return f"missing-hwid:{digest}"
+
+
 def enforce_hwid_device_limit(
     db: Session,
     dbuser: User,
@@ -117,6 +123,22 @@ def enforce_hwid_device_limit(
     hwid = request.headers.get("x-hwid")
     if not hwid:
         if mode == "logging":
+            if config_module.HWID_LOG_MISSING_IN_LOGGING_MODE and user_agent:
+                try:
+                    crud.upsert_user_hwid_device(
+                        db=db,
+                        dbuser=dbuser,
+                        hwid=_build_missing_hwid(user_agent),
+                        device_os=request.headers.get("x-device-os"),
+                        device_model=request.headers.get("x-device-model"),
+                        device_os_version=request.headers.get("x-ver-os"),
+                        user_agent=user_agent,
+                    )
+                except OperationalError:
+                    logger.warning(
+                        "Failed to log missing HWID device for user %s due to database error; allowing subscription.",
+                        dbuser.id,
+                    )
             return True, None
         return False, "missing_hwid"
 
