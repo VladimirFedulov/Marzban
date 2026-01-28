@@ -1,4 +1,3 @@
-import hashlib
 import re
 from threading import Lock
 from datetime import datetime, timedelta
@@ -100,8 +99,7 @@ def _should_update_subscription_metadata(dbuser: User) -> bool:
 
 
 def _build_missing_hwid(user_agent: str) -> str:
-    digest = hashlib.sha256(user_agent.encode("utf-8")).hexdigest()
-    return f"missing-hwid:{digest}"
+    return "missing-hwid"
 
 
 def enforce_hwid_device_limit(
