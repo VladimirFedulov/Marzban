@@ -211,6 +211,8 @@
   "usersTable.status": "状态",
   "usersTable.sortByExpire": "按过期时间排序",
   "usersTable.total": "总共",
+  "settings.hwidLogMissingInLoggingMode": "在记录模式下记录无 HWID 的请求",
+  "settings.hwidLogMissingInLoggingModeHelp": "启用记录模式时，仍保存无 HWID 的请求（需要 User-Agent）。",
   "settings.groups.templates": "模板与自定义页面",
   "settings.groups.templatesDescription": "订阅与落地页使用的模板路径与自定义页面文件。",
   "settings.groups.subscriptionAdvanced": "订阅路由",

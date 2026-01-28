@@ -166,6 +166,12 @@ export const settingsGroups: SettingsGroup[] = [
         ],
       },
       {
+        key: "HWID_LOG_MISSING_IN_LOGGING_MODE",
+        labelKey: "settings.hwidLogMissingInLoggingMode",
+        descriptionKey: "settings.hwidLogMissingInLoggingModeHelp",
+        inputType: "boolean",
+      },
+      {
         key: "HWID_FALLBACK_DEVICE_LIMIT",
         labelKey: "settings.hwidFallbackDeviceLimit",
         descriptionKey: "settings.hwidFallbackDeviceLimitHelp",

@@ -349,6 +349,8 @@
   "settings.subscriptionCustomNotesHwidLimitHelp": "Notes shown when HWID limits block subscription access.",
   "settings.hwidDeviceLimitEnabled": "HWID device limit mode",
   "settings.hwidDeviceLimitEnabledHelp": "Choose how HWID device limits are enforced (default: disabled).",
+  "settings.hwidLogMissingInLoggingMode": "Log requests without HWID in logging mode",
+  "settings.hwidLogMissingInLoggingModeHelp": "When logging mode is enabled, store requests even if they lack HWID (requires a User-Agent).",
   "settings.hwidLimitEnabled": "Enabled",
   "settings.hwidLimitDisabled": "Disabled",
   "settings.hwidLimitLogging": "Logging",
