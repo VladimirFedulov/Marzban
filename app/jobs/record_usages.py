@@ -57,6 +57,24 @@ def safe_execute(db: Session, stmt, params=None):
         db.commit()
 
 
+def run_recording_tasks(tasks: list[tuple], max_workers: int) -> None:
+    if not tasks:
+        return
+
+    if max_workers is None or max_workers <= 1 or len(tasks) == 1:
+        for func, *args in tasks:
+            func(*args)
+        return
+
+    with ThreadPoolExecutor(max_workers=min(max_workers, len(tasks))) as executor:
+        futures = [executor.submit(func, *args) for func, *args in tasks]
+        for future in futures:
+            try:
+                future.result()
+            except Exception as exc:
+                logger.warning(f"Usage recording task failed: {exc}")
+
+
 def record_user_stats(params: list,
                       node_id: Union[int, None],
                       consumption_factor: int = 1):
@@ -227,8 +245,14 @@ def record_user_usages():
     if config_module.DISABLE_RECORDING_NODE_USAGE:
         return
 
-    for node_id, params in api_params.items():
-        record_user_stats(params, node_id, usage_coefficient[node_id])
+    recording_tasks = [
+        (record_user_stats, params, node_id, usage_coefficient[node_id])
+        for node_id, params in api_params.items()
+    ]
+    run_recording_tasks(
+        recording_tasks,
+        config_module.JOB_RECORD_USER_USAGES_WORKERS
+    )
 
 
 def record_node_usages():
@@ -270,8 +294,14 @@ def record_node_usages():
     if config_module.DISABLE_RECORDING_NODE_USAGE:
         return
 
-    for node_id, params in api_params.items():
-        record_node_stats(params, node_id)
+    recording_tasks = [
+        (record_node_stats, params, node_id)
+        for node_id, params in api_params.items()
+    ]
+    run_recording_tasks(
+        recording_tasks,
+        config_module.JOB_RECORD_USER_USAGES_WORKERS
+    )
 
 
 scheduler.add_job(record_user_usages,
